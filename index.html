@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <title>Painel de Pedidos</title>
+  <style>
+    body { font-family: Arial, sans-serif; background: #f4f4f4; }
+    h1 { text-align: center; }
+    .pedido {
+      background: white;
+      padding: 15px;
+      margin: 10px auto;
+      border-radius: 8px;
+      max-width: 500px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+    }
+    .itens { margin-top: 10px; }
+    .item { border-bottom: 1px solid #ddd; padding: 5px 0; }
+    .botoes { margin-top: 10px; }
+    button {
+      margin-right: 5px;
+      padding: 5px 10px;
+      border: none;
+      border-radius: 5px;
+      cursor: pointer;
+    }
+    .confirmar { background: #4CAF50; color: white; }
+    .excluir { background: #f44336; color: white; }
+    .excluir-tudo { background: #000; color: white; display: block; margin: 10px auto; }
+    .status { font-weight: bold; padding: 3px 6px; border-radius: 4px; }
+    .pendente { background: orange; color: white; }
+    .confirmado { background: green; color: white; }
+  </style>
+</head>
+<body>
+  <h1>📦 Painel de Pedidos</h1>
+  <button id="btnExcluirTudo" class="excluir-tudo">🗑️ Excluir Todos os Pedidos</button>
+  <div id="lista-pedidos"></div>
+
+  <!-- Áudio mudo para manter canal aberto -->
+  <audio id="silencio" autoplay loop muted>
+    <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEA..." type="audio/wav">
+  </audio>
+
+  <!-- Áudio do bip curto e alto -->
+  <audio id="bip" preload="auto">
+    <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
+  </audio>
+
+  <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js";
+  import { 
+    getFirestore, collection, onSnapshot, orderBy, query, 
+    deleteDoc, doc, getDocs, updateDoc 
+  } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-firestore.js";
+
+  const firebaseConfig = {
+    apiKey: "AIzaSyBHBcJHtU_o8tjsJCSoCsO665M3N72mF8g",
+    authDomain: "meusiteaki2025.firebaseapp.com",
+    projectId: "meusiteaki2025",
+    storageBucket: "meusiteaki2025.firebasestorage.app",
+    messagingSenderId: "1059720978927",
+    appId: "1:1059720978927:web:c4e5fde24aa95672d0161a",
+    measurementId: "G-KD8EDDRLWZ"
+  };
+
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
+
+  const listaPedidos = document.getElementById('lista-pedidos');
+  const btnExcluirTudo = document.getElementById('btnExcluirTudo');
+  const bip = document.getElementById('bip');
+
+  // Função para tocar dois bips curtos e altos
+  function tocarAlerta() {
+    bip.currentTime = 0;
+    bip.play();
+
+    setTimeout(() => {
+      bip.currentTime = 0;
+      bip.play();
+    }, 800);
+  }
+
+  const q = query(collection(db, "pedidos"), orderBy("timestamp", "desc"));
+  let pedidosCarregados = false;
+
+  onSnapshot(q, snapshot => {
+    if (snapshot.empty) {
+        listaPedidos.innerHTML = "<p style='text-align: center;'>Nenhum pedido no momento.</p>";
+    } else {
+      listaPedidos.innerHTML = "";
+    }
+
+    snapshot.forEach(docSnap => {
+      const pedido = docSnap.data();
+      const div = document.createElement('div');
+      div.classList.add('pedido');
+
+      let statusHtml;
+      switch(pedido.status) {
+        case "confirmado": statusHtml = `<span class="status confirmado">✅ Confirmado</span>`; break;
+        case "entrega": statusHtml = `<span class="status em-entrega">🚚 Em Entrega</span>`; break;
+        default: statusHtml = `<span class="status pendente">⏳ Pendente</span>`;
+      }
+
+      div.innerHTML = `
+        ${statusHtml}
+        <p><strong>👤 Cliente:</strong> ${pedido.cliente}</p>
+        <p><strong>📞 Tel:</strong> ${pedido.telefone}</p>
+        <p><strong>🏠 Endereço:</strong> ${pedido.endereco}</p>
+        <p><strong>💳 Pagamento:</strong> ${pedido.pagamento}</p>
+        <div class="itens">
+          <strong>🍔 Itens:</strong>
+          ${pedido.itens.map(item => `<div class="item">${item.quantity}x ${item.name}</div>`).join('')}
+        </div>
+        <p><strong>🚚 Entrega:</strong> R$ ${pedido.taxaEntrega?.toFixed(2).replace('.', ',') || "0,00"}</p>
+        <p><strong>💰 Total:</strong> R$ ${pedido.total.replace('.', ',')}</p>
+        ${pedido.observacao ? `<p><strong>📝 Obs:</strong> ${pedido.observacao}</p>` : ""}
+        <div class="botoes">
+          <button class="confirmar" ${ (pedido.status && pedido.status !== 'pendente') ? 'disabled' : '' }>✅ Confirmar</button>
+          <button class="entrega" ${pedido.status !== 'confirmado' ? 'disabled' : ''}>🚚 Saiu para Entrega</button>
+          <button class="excluir">🗑️ Excluir</button>
+        </div>
+      `;
+
+      div.querySelector('.confirmar').addEventListener('click', async () => {
+        await updateDoc(doc(db, "pedidos", docSnap.id), { status: "confirmado" });
+        const mensagem = encodeURIComponent("Pedido confirmado. Já está em produção, por favor aguarde.");
+        const telefone = pedido.telefone.replace(/\D/g, "");
+        window.open(`https://wa.me/55${telefone}?text=${mensagem}`, '_blank');
+      });
+
+      div.querySelector('.entrega').addEventListener('click', async () => {
+        const mensagem = encodeURIComponent("Seu pedido já saiu para entrega. Obrigado!");
+        const telefone = pedido.telefone.replace(/\D/g, "");
+        await updateDoc(doc(db, "pedidos", docSnap.id), { status: "entrega" });
+        window.open(`https://wa.me/55${telefone}?text=${mensagem}`, '_blank');
+      });
+      
+      div.querySelector('.excluir').addEventListener('click', async () => {
+        if (confirm("Tem certeza que deseja excluir este pedido?")) {
+          await deleteDoc(doc(db, "pedidos", docSnap.id));
+        }
+      });
+
+      listaPedidos.appendChild(div);
+    });
+
+    if (pedidosCarregados && snapshot.docChanges().some(change => change.type === 'added')) {
+      tocarAlerta();
+    }
+    pedidosCarregados = true;
+  });
+
+  btnExcluirTudo.addEventListener('click', async () => {
+    const pedidos = await getDocs(collection(db, "pedidos"));
+    const promises = pedidos.docs.map(doc => deleteDoc(doc.ref));
+    await Promise.all(promises);
+  });
+</script>
+</body>
+</html>
