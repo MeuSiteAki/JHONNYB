@@ -24,12 +24,11 @@
       border-radius: 5px;
       cursor: pointer;
     }
-    .confirmar { background: #4CAF50; color: white; }
     .excluir { background: #f44336; color: white; }
     .excluir-tudo { background: #000; color: white; display: block; margin: 10px auto; }
     .status { font-weight: bold; padding: 3px 6px; border-radius: 4px; }
-    .pendente { background: orange; color: white; }
     .confirmado { background: green; color: white; }
+    .em-entrega { background: blue; color: white; }
   </style>
 </head>
 <body>
@@ -50,8 +49,8 @@
   <script type="module">
   import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js";
   import { 
-    getFirestore, collection, onSnapshot, orderBy, query, 
-    deleteDoc, doc, getDocs, updateDoc 
+    getFirestore, collection, onSnapshot, orderBy, query, limit,
+    deleteDoc, doc, getDocs
   } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-firestore.js";
 
   const firebaseConfig = {
@@ -71,38 +70,39 @@
   const btnExcluirTudo = document.getElementById('btnExcluirTudo');
   const bip = document.getElementById('bip');
 
-  // Função para tocar dois bips curtos e altos
   function tocarAlerta() {
     bip.currentTime = 0;
     bip.play();
-
     setTimeout(() => {
       bip.currentTime = 0;
       bip.play();
     }, 800);
   }
 
-  const q = query(collection(db, "pedidos"), orderBy("timestamp", "desc"));
+  const q = query(collection(db, "pedidos"), orderBy("timestamp", "desc"), limit(1));
   let pedidosCarregados = false;
 
   onSnapshot(q, snapshot => {
     if (snapshot.empty) {
-        listaPedidos.innerHTML = "<p style='text-align: center;'>Nenhum pedido no momento.</p>";
-    } else {
-      listaPedidos.innerHTML = "";
+      listaPedidos.innerHTML = "<p style='text-align: center;'>Nenhum pedido no momento.</p>";
+      return;
     }
+
+    listaPedidos.innerHTML = "";
 
     snapshot.forEach(docSnap => {
       const pedido = docSnap.data();
+
       const div = document.createElement('div');
       div.classList.add('pedido');
 
-      let statusHtml;
-      switch(pedido.status) {
-        case "confirmado": statusHtml = `<span class="status confirmado">✅ Confirmado</span>`; break;
-        case "entrega": statusHtml = `<span class="status em-entrega">🚚 Em Entrega</span>`; break;
-        default: statusHtml = `<span class="status pendente">⏳ Pendente</span>`;
+      let statusHtml = "";
+      if (pedido.status === "confirmado") {
+        statusHtml = `<span class="status confirmado">✅ Confirmado</span>`;
+      } else if (pedido.status === "entrega") {
+        statusHtml = `<span class="status em-entrega">🚚 Em Entrega</span>`;
       }
+      // Não exibe mais "pendente"
 
       div.innerHTML = `
         ${statusHtml}
@@ -118,26 +118,10 @@
         <p><strong>💰 Total:</strong> R$ ${pedido.total.replace('.', ',')}</p>
         ${pedido.observacao ? `<p><strong>📝 Obs:</strong> ${pedido.observacao}</p>` : ""}
         <div class="botoes">
-          <button class="confirmar" ${ (pedido.status && pedido.status !== 'pendente') ? 'disabled' : '' }>✅ Confirmar</button>
-          <button class="entrega" ${pedido.status !== 'confirmado' ? 'disabled' : ''}>🚚 Saiu para Entrega</button>
           <button class="excluir">🗑️ Excluir</button>
         </div>
       `;
 
-      div.querySelector('.confirmar').addEventListener('click', async () => {
-        await updateDoc(doc(db, "pedidos", docSnap.id), { status: "confirmado" });
-        const mensagem = encodeURIComponent("Pedido confirmado. Já está em produção, por favor aguarde.");
-        const telefone = pedido.telefone.replace(/\D/g, "");
-        window.open(`https://wa.me/55${telefone}?text=${mensagem}`, '_blank');
-      });
-
-      div.querySelector('.entrega').addEventListener('click', async () => {
-        const mensagem = encodeURIComponent("Seu pedido já saiu para entrega. Obrigado!");
-        const telefone = pedido.telefone.replace(/\D/g, "");
-        await updateDoc(doc(db, "pedidos", docSnap.id), { status: "entrega" });
-        window.open(`https://wa.me/55${telefone}?text=${mensagem}`, '_blank');
-      });
-      
       div.querySelector('.excluir').addEventListener('click', async () => {
         if (confirm("Tem certeza que deseja excluir este pedido?")) {
           await deleteDoc(doc(db, "pedidos", docSnap.id));
@@ -158,6 +142,6 @@
     const promises = pedidos.docs.map(doc => deleteDoc(doc.ref));
     await Promise.all(promises);
   });
-</script>
+  </script>
 </body>
 </html>
