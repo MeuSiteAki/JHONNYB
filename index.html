@@ -39,21 +39,18 @@
     .status { font-weight: bold; padding: 3px 6px; border-radius: 4px; }
     .confirmado { background: green; color: white; }
     .em-entrega { background: blue; color: white; }
+    #ativarSom { background: orange; color: white; display: block; margin: 10px auto; }
   </style>
 </head>
 <body>
   <h1>📦 Painel de Pedidos</h1>
+  <button id="ativarSom">🔊 Ativar Som</button>
   <button id="btnExcluirTudo" class="excluir-tudo">🗑️ Excluir Todos os Pedidos</button>
   <div id="lista-pedidos"></div>
 
-  <!-- Áudio mudo para manter canal aberto -->
-  <audio id="silencio" autoplay loop muted>
-    <source src="data:audio/wav;base64,UklGRiQAAABXQVZFZm10IBAAAAABAAEA..." type="audio/wav">
-  </audio>
-
-  <!-- Áudio do bip curto e alto -->
+  <!-- Áudio do alerta -->
   <audio id="bip" preload="auto">
-    <source src="https://actions.google.com/sounds/v1/alarms/beep_short.ogg" type="audio/ogg">
+    <source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" type="audio/ogg">
   </audio>
 
   <script type="module">
@@ -64,7 +61,7 @@
   } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-firestore.js";
 
   const firebaseConfig = {
-    apiKey: "AIzaSyBHBcJHtU_o8tjsJCSoCsO665M3N72mF8g",
+    apiKey: "SUA_API_KEY",
     authDomain: "meusiteaki2025.firebaseapp.com",
     projectId: "meusiteaki2025",
     storageBucket: "meusiteaki2025.firebasestorage.app",
@@ -79,18 +76,34 @@
   const listaPedidos = document.getElementById('lista-pedidos');
   const btnExcluirTudo = document.getElementById('btnExcluirTudo');
   const bip = document.getElementById('bip');
+  const btnAtivarSom = document.getElementById('ativarSom');
 
+  let somAtivado = false;
+
+  // Ativar som manualmente
+  btnAtivarSom.addEventListener('click', () => {
+    bip.play().then(() => {
+      bip.pause();
+      bip.currentTime = 0;
+      somAtivado = true;
+      alert("Som ativado! Agora os alertas vão funcionar.");
+      btnAtivarSom.style.display = "none"; // esconde botão depois de ativar
+    });
+  });
+
+  // Função para tocar alerta 2x
   function tocarAlerta() {
+    if (!somAtivado) return; // só toca se o usuário ativou
+    bip.volume = 1.0;
     bip.currentTime = 0;
     bip.play();
     setTimeout(() => {
       bip.currentTime = 0;
       bip.play();
-    }, 800);
+    }, 1000);
   }
 
   const q = query(collection(db, "pedidos"), orderBy("timestamp", "desc"), limit(1));
-  let pedidosCarregados = false;
 
   onSnapshot(q, snapshot => {
     if (snapshot.empty) {
@@ -151,21 +164,21 @@
       // Botão WhatsApp Entrega
       div.querySelector('.whatsapp-entrega').addEventListener('click', () => {
         const numero = pedido.telefone.replace(/\D/g, '');
-        const mensagem = "Olá! Seu pedido já saiu para entrega 🚚. Muito obrigado e volte sempr. *Jhonny Bagdá agradece!*";
+        const mensagem = "Olá! Seu pedido já saiu para entrega 🚚. Muito obrigado e volte sempre. *Jhonny Bagdá agradece!*";
         const url = `https://wa.me/55${numero}?text=${encodeURIComponent(mensagem)}`;
         window.open(url, '_blank');
-
-        // Adiciona borda verde ao container do pedido
         div.classList.add('entrega-saiu');
       });
 
       listaPedidos.appendChild(div);
     });
 
-    if (pedidosCarregados && snapshot.docChanges().some(change => change.type === 'added')) {
-      tocarAlerta();
-    }
-    pedidosCarregados = true;
+    // Agora toca alerta sempre que houver pedido novo
+    snapshot.docChanges().forEach(change => {
+      if (change.type === 'added') {
+        tocarAlerta();
+      }
+    });
   });
 
   btnExcluirTudo.addEventListener('click', async () => {
