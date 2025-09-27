@@ -13,18 +13,28 @@
       border-radius: 8px;
       max-width: 500px;
       box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      transition: border 0.3s ease;
+    }
+    .pedido.entrega-saiu {
+      border: 10px solid green;
     }
     .itens { margin-top: 10px; }
     .item { border-bottom: 1px solid #ddd; padding: 5px 0; }
-    .botoes { margin-top: 10px; }
+    .botoes { 
+      margin-top: 10px; 
+      display: flex; 
+      justify-content: space-between; 
+      align-items: center;
+    }
     button {
-      margin-right: 5px;
       padding: 5px 10px;
       border: none;
       border-radius: 5px;
       cursor: pointer;
     }
     .excluir { background: #f44336; color: white; }
+    .whatsapp { background: #25D366; color: white; }
+    .whatsapp-entrega { background: #2196F3; color: white; margin-left: auto; }
     .excluir-tudo { background: #000; color: white; display: block; margin: 10px auto; }
     .status { font-weight: bold; padding: 3px 6px; border-radius: 4px; }
     .confirmado { background: green; color: white; }
@@ -102,7 +112,6 @@
       } else if (pedido.status === "entrega") {
         statusHtml = `<span class="status em-entrega">🚚 Em Entrega</span>`;
       }
-      // Não exibe mais "pendente"
 
       div.innerHTML = `
         ${statusHtml}
@@ -119,13 +128,35 @@
         ${pedido.observacao ? `<p><strong>📝 Obs:</strong> ${pedido.observacao}</p>` : ""}
         <div class="botoes">
           <button class="excluir">🗑️ Excluir</button>
+          <button class="whatsapp">💬 WhatsApp</button>
+          <button class="whatsapp-entrega">📦 Saiu p/ Entrega</button>
         </div>
       `;
 
+      // Botão excluir
       div.querySelector('.excluir').addEventListener('click', async () => {
         if (confirm("Tem certeza que deseja excluir este pedido?")) {
           await deleteDoc(doc(db, "pedidos", docSnap.id));
         }
+      });
+
+      // Botão WhatsApp (mensagem inicial)
+      div.querySelector('.whatsapp').addEventListener('click', () => {
+        const numero = pedido.telefone.replace(/\D/g, '');
+        const mensagem = "Boa noite, seu pedido já está na fila de preparo, por favor aguarde!";
+        const url = `https://wa.me/55${numero}?text=${encodeURIComponent(mensagem)}`;
+        window.open(url, '_blank');
+      });
+
+      // Botão WhatsApp Entrega
+      div.querySelector('.whatsapp-entrega').addEventListener('click', () => {
+        const numero = pedido.telefone.replace(/\D/g, '');
+        const mensagem = "Olá! Seu pedido já saiu para entrega 🚚. Muito obrigado e volte sempr. *Jhonny Bagdá agradece!*";
+        const url = `https://wa.me/55${numero}?text=${encodeURIComponent(mensagem)}`;
+        window.open(url, '_blank');
+
+        // Adiciona borda verde ao container do pedido
+        div.classList.add('entrega-saiu');
       });
 
       listaPedidos.appendChild(div);
