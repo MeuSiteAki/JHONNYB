@@ -1,191 +1,433 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
+
 <head>
-  <meta charset="UTF-8">
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Painel de Pedidos</title>
+
   <style>
-    body { font-family: Arial, sans-serif; background: #f4f4f4; }
-    h1 { text-align: center; }
-    .pedido {
-      background: white;
-      padding: 15px;
-      margin: 10px auto;
-      border-radius: 8px;
-      max-width: 500px;
-      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
-      transition: border 0.3s ease;
-    }
-    .pedido.entrega-saiu {
-      border: 10px solid green;
-    }
-    .itens { margin-top: 10px; }
-    .item { border-bottom: 1px solid #ddd; padding: 5px 0; }
-    .botoes { 
-      margin-top: 10px; 
-      display: flex; 
-      justify-content: space-between; 
-      align-items: center;
-    }
-    button {
-      padding: 5px 10px;
-      border: none;
-      border-radius: 5px;
-      cursor: pointer;
-    }
-    .excluir { background: #f44336; color: white; }
-    .whatsapp { background: #25D366; color: white; }
-    .whatsapp-entrega { background: #2196F3; color: white; margin-left: auto; }
-    .excluir-tudo { background: #000; color: white; display: block; margin: 10px auto; }
-    .status { font-weight: bold; padding: 3px 6px; border-radius: 4px; }
-    .confirmado { background: green; color: white; }
-    .em-entrega { background: blue; color: white; }
-    #ativarSom { background: orange; color: white; display: block; margin: 10px auto; }
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+
+:root {
+  --bg: #eef2f7;
+  --card: #ffffff;
+  --text: #2c3e50;
+  --muted: #7f8c8d;
+  --accent: #3498db;
+  --ok: #27ae60;
+  --warn: #f39c12;
+  --danger: #e74c3c;
+  --border: #e1e8ed;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+  background: linear-gradient(135deg, #eef2f7, #dfe6ee);
+  color: var(--text);
+  padding: 24px;
+  line-height: 1.5;
+}
+
+/* Cabeçalhos */
+h1 {
+  font-size: 30px;
+  font-weight: 700;
+  margin-bottom: 24px;
+  position: relative;
+  color: var(--text);
+}
+
+h1::after {
+  content: "";
+  display: block;
+  width: 70px;
+  height: 4px;
+  background: var(--accent);
+  border-radius: 2px;
+  margin-top: 8px;
+}
+
+h2 {
+  margin: 32px 0 14px;
+  font-size: 20px;
+  color: var(--muted);
+  font-weight: 600;
+  letter-spacing: 0.5px;
+}
+
+/* Toolbar */
+.toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 24px;
+  flex-wrap: wrap;
+}
+
+.toolbar button {
+  padding: 10px 18px;
+  border: none;
+  border-radius: 10px;
+  font-weight: 600;
+  cursor: pointer;
+  background: var(--accent);
+  color: #fff;
+  transition: all 0.2s ease;
+}
+
+.toolbar button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 14px rgba(0,0,0,0.15);
+}
+
+.excluir-tudo {
+  background: var(--danger);
+}
+
+/* Lista de pedidos */
+.lista {
+  display: grid;
+  gap: 20px;
+  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
+}
+
+/* Card de pedido */
+.pedido {
+  background: var(--card);
+  border-radius: 18px;
+  padding: 20px;
+  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
+  transition: transform 0.25s ease, box-shadow 0.25s ease;
+  border: 1px solid var(--border);
+}
+
+.pedido:hover {
+  transform: translateY(-6px);
+  box-shadow: 0 10px 24px rgba(0,0,0,0.12);
+}
+
+.pedido.entrega-saiu {
+  border: 3px solid var(--ok);
+}
+
+/* Status */
+.status {
+  display: inline-block;
+  padding: 6px 14px;
+  border-radius: 999px;
+  font-size: 13px;
+  font-weight: 600;
+  margin-bottom: 12px;
+  letter-spacing: 0.3px;
+}
+
+.status.confirmado {
+  background: rgba(39, 174, 96, 0.12);
+  color: var(--ok);
+}
+
+.status.em-entrega {
+  background: rgba(52, 152, 219, 0.12);
+  color: var(--accent);
+}
+
+/* Itens */
+.itens {
+  margin: 12px 0;
+}
+
+.itens .item {
+  background: #fafbfc;
+  border: 1px solid #e6e9ef;
+  border-radius: 12px;
+  padding: 10px 12px;
+  margin-top: 8px;
+  font-size: 14px;
+  color: #444;
+  transition: background 0.2s ease, transform 0.2s ease;
+}
+
+.itens .item:hover {
+  background: #f0f6ff;
+  transform: translateX(4px);
+}
+
+/* Botões de ação */
+.botoes {
+  display: flex;
+  gap: 10px;
+  margin-top: 14px;
+  flex-wrap: wrap;
+}
+
+.botoes button {
+  border: none;
+  border-radius: 8px;
+  padding: 10px 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s ease;
+  color: #fff;
+  flex: 1;
+  min-width: 120px;
+}
+
+.botoes button:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+}
+
+.botoes .excluir { background: var(--danger); }
+.botoes .whatsapp { background: #2ecc71; }
+.botoes .whatsapp-entrega { background: var(--accent); }
+.botoes .desmarcar-entrega { background: #95a5a6; }
+
+/* Mensagem sem pedidos */
+.sem-pedidos {
+  color: var(--muted);
+  font-size: 15px;
+  border: 1px dashed var(--border);
+  padding: 16px;
+  border-radius: 14px;
+  background: #f9fbfd;
+  text-align: center;
+  font-style: italic;
+}
+
   </style>
 </head>
+
 <body>
   <h1>📦 Painel de Pedidos</h1>
-  <button id="ativarSom">🔊 Ativar Som</button>
-  <button id="btnExcluirTudo" class="excluir-tudo">🗑️ Excluir Todos os Pedidos</button>
-  <div id="lista-pedidos"></div>
 
-  <!-- Áudio do alerta -->
+  <div class="toolbar">
+    <button id="ativarSom">🔊 Ativar Som</button>
+    <button id="btnExcluirTudo" class="excluir-tudo">🗑️ Excluir Todos os Pedidos</button>
+  </div>
+
+  <h2>🆕 Pedido Atual</h2>
+  <div id="lista-pedidos" class="lista"></div>
+
+  <h2>📜 Pedidos Antigos</h2>
+  <div id="lista-antigos" class="lista"></div>
+
   <audio id="bip" preload="auto">
     <source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" type="audio/ogg">
   </audio>
 
   <script type="module">
-  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js";
-  import { 
-    getFirestore, collection, onSnapshot, orderBy, query, limit,
-    deleteDoc, doc, getDocs
-  } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-firestore.js";
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js";
+    import {
+      getFirestore, collection, onSnapshot, orderBy, query, limit,
+      deleteDoc, doc, getDocs
+    } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-firestore.js";
 
-  const firebaseConfig = {
-    apiKey: "SUA_API_KEY",
-    authDomain: "meusiteaki2025.firebaseapp.com",
-    projectId: "meusiteaki2025",
-    storageBucket: "meusiteaki2025.firebasestorage.app",
-    messagingSenderId: "1059720978927",
-    appId: "1:1059720978927:web:c4e5fde24aa95672d0161a",
-    measurementId: "G-KD8EDDRLWZ"
-  };
+    const firebaseConfig = {
+      apiKey: "SUA_API_KEY",
+      authDomain: "meusiteaki2025.firebaseapp.com",
+      projectId: "meusiteaki2025",
+      storageBucket: "meusiteaki2025.firebasestorage.app",
+      messagingSenderId: "1059720978927",
+      appId: "1:1059720978927:web:c4e5fde24aa95672d0161a",
+      measurementId: "G-KD8EDDRLWZ"
+    };
 
-  const app = initializeApp(firebaseConfig);
-  const db = getFirestore(app);
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
 
-  const listaPedidos = document.getElementById('lista-pedidos');
-  const btnExcluirTudo = document.getElementById('btnExcluirTudo');
-  const bip = document.getElementById('bip');
-  const btnAtivarSom = document.getElementById('ativarSom');
+    const listaPedidos = document.getElementById('lista-pedidos');
+    const listaAntigos = document.getElementById('lista-antigos');
+    const btnExcluirTudo = document.getElementById('btnExcluirTudo');
+    const bip = document.getElementById('bip');
+    const btnAtivarSom = document.getElementById('ativarSom');
 
-  let somAtivado = false;
+    let somAtivado = false;
 
-  // Ativar som manualmente
-  btnAtivarSom.addEventListener('click', () => {
-    bip.play().then(() => {
+    // LocalStorage helpers
+    function getEntregues() {
+      try { return JSON.parse(localStorage.getItem("pedidosEntregues") || "[]"); }
+      catch { return []; }
+    }
+    function setEntregues(arr) {
+      localStorage.setItem("pedidosEntregues", JSON.stringify(arr));
+    }
+    function marcarEntrega(id) {
+      const entregues = getEntregues();
+      if (!entregues.includes(id)) {
+        entregues.push(id);
+        setEntregues(entregues);
+      }
+    }
+    function desmarcarEntrega(id) {
+      const entregues = getEntregues().filter(x => x !== id);
+      setEntregues(entregues);
+    }
+    function isEntregue(id) {
+      return getEntregues().includes(id);
+    }
+
+    // Ativar som
+    btnAtivarSom.addEventListener('click', async () => {
+      try { await bip.play(); } catch (_) { }
       bip.pause();
       bip.currentTime = 0;
       somAtivado = true;
       alert("Som ativado! Agora os alertas vão funcionar.");
-      btnAtivarSom.style.display = "none"; // esconde botão depois de ativar
+      btnAtivarSom.style.display = "none";
     });
-  });
 
-  // Função para tocar alerta 2x
-  function tocarAlerta() {
-    if (!somAtivado) return; // só toca se o usuário ativou
-    bip.volume = 1.0;
-    bip.currentTime = 0;
-    bip.play();
-    setTimeout(() => {
+    function tocarAlerta() {
+      if (!somAtivado) return;
+      bip.volume = 1.0;
       bip.currentTime = 0;
       bip.play();
-    }, 1000);
-  }
-
-  const q = query(collection(db, "pedidos"), orderBy("timestamp", "desc"), limit(1));
-
-  onSnapshot(q, snapshot => {
-    if (snapshot.empty) {
-      listaPedidos.innerHTML = "<p style='text-align: center;'>Nenhum pedido no momento.</p>";
-      return;
+      setTimeout(() => {
+        bip.currentTime = 0;
+        bip.play();
+      }, 1000);
     }
 
-    listaPedidos.innerHTML = "";
+    function formatarDinheiro(valor) {
+      if (valor === null || valor === undefined || valor === '') return '0,00';
+      const n = typeof valor === 'number'
+        ? valor
+        : parseFloat(String(valor).replace(/[^\d,.-]/g, '').replace(',', '.')) || 0;
+      return n.toFixed(2).replace('.', ',');
+    }
 
-    snapshot.forEach(docSnap => {
+    function textoStatus(status) {
+      if (status === "confirmado") return `<span class="status confirmado">✅ Confirmado</span>`;
+      if (status === "entrega") return `<span class="status em-entrega">🚚 Em Entrega</span>`;
+      return "";
+    }
+
+    function calcularTotal(pedido) {
+      const itens = Array.isArray(pedido.itens) ? pedido.itens : [];
+      const subtotal = itens.reduce((acc, item) => {
+        const preco = parseFloat(String(item.price || 0).replace(',', '.')) || 0;
+        const qtd = parseInt(item.quantity || 0);
+        return acc + (preco * qtd);
+      }, 0);
+      const entrega = parseFloat(String(pedido.taxaEntrega || 0).replace(',', '.')) || 0;
+      return subtotal + entrega;
+    }
+
+    function renderPedido(docSnap, container) {
       const pedido = docSnap.data();
-
       const div = document.createElement('div');
       div.classList.add('pedido');
 
-      let statusHtml = "";
-      if (pedido.status === "confirmado") {
-        statusHtml = `<span class="status confirmado">✅ Confirmado</span>`;
-      } else if (pedido.status === "entrega") {
-        statusHtml = `<span class="status em-entrega">🚚 Em Entrega</span>`;
+      const statusHtml = textoStatus(pedido.status);
+      const total = calcularTotal(pedido);
+
+      // Mantém borda verde se marcado no localStorage
+      if (isEntregue(docSnap.id)) {
+        div.classList.add('entrega-saiu');
       }
 
       div.innerHTML = `
         ${statusHtml}
-        <p><strong>👤 Cliente:</strong> ${pedido.cliente}</p>
-        <p><strong>📞 Tel:</strong> ${pedido.telefone}</p>
-        <p><strong>🏠 Endereço:</strong> ${pedido.endereco}</p>
-        <p><strong>💳 Pagamento:</strong> ${pedido.pagamento}</p>
+        <p><strong>👤 Cliente:</strong> ${pedido.cliente || "-"}</p>
+        <p><strong>📞 Tel:</strong> ${pedido.telefone || "-"}</p>
+        <p><strong>🏠 Endereço:</strong> ${pedido.endereco || "-"}</p>
+        <p><strong>💳 Pagamento:</strong> ${pedido.pagamento || "-"}</p>
         <div class="itens">
           <strong>🍔 Itens:</strong>
-          ${pedido.itens.map(item => `<div class="item">${item.quantity}x ${item.name}</div>`).join('')}
+          ${(Array.isArray(pedido.itens) ? pedido.itens : []).map(item => `
+            <div class="item">${item.quantity || 0}x ${item.name || "-"} — R$ ${formatarDinheiro(item.price || 0)}</div>
+          `).join('') || "<div class='item'>Nenhum item</div>"}
         </div>
-        <p><strong>🚚 Entrega:</strong> R$ ${pedido.taxaEntrega?.toFixed(2).replace('.', ',') || "0,00"}</p>
-        <p><strong>💰 Total:</strong> R$ ${pedido.total.replace('.', ',')}</p>
+        <p><strong>🚚 Entrega:</strong> R$ ${formatarDinheiro(pedido.taxaEntrega)}</p>
+        <p><strong>💰 Total:</strong> R$ ${formatarDinheiro(total)}</p>
         ${pedido.observacao ? `<p><strong>📝 Obs:</strong> ${pedido.observacao}</p>` : ""}
         <div class="botoes">
           <button class="excluir">🗑️ Excluir</button>
           <button class="whatsapp">💬 WhatsApp</button>
           <button class="whatsapp-entrega">📦 Saiu p/ Entrega</button>
+          <button class="desmarcar-entrega" title="Remover marcação local">🔄 Desmarcar Entrega</button>
         </div>
       `;
 
-      // Botão excluir
+      // Excluir
       div.querySelector('.excluir').addEventListener('click', async () => {
         if (confirm("Tem certeza que deseja excluir este pedido?")) {
           await deleteDoc(doc(db, "pedidos", docSnap.id));
+          desmarcarEntrega(docSnap.id); // limpa marcação local
         }
       });
 
-      // Botão WhatsApp (mensagem inicial)
+      // WhatsApp preparo
       div.querySelector('.whatsapp').addEventListener('click', () => {
-        const numero = pedido.telefone.replace(/\D/g, '');
-        const mensagem = "Boa noite, seu pedido já está na fila de preparo, por favor aguarde!";
+        const numero = String(pedido.telefone || "").replace(/\D/g, '');
+        if (!numero) return alert("Telefone inválido.");
+        const hora = new Date().getHours();
+        const saudacao = hora >= 18 ? "Boa noite" : "Boa tarde";
+        const mensagem = `${saudacao}, seu pedido já está na fila de preparo, por favor aguarde!`;
         const url = `https://wa.me/55${numero}?text=${encodeURIComponent(mensagem)}`;
         window.open(url, '_blank');
       });
 
-      // Botão WhatsApp Entrega
+      // WhatsApp entrega + marcação local
       div.querySelector('.whatsapp-entrega').addEventListener('click', () => {
-        const numero = pedido.telefone.replace(/\D/g, '');
+        const numero = String(pedido.telefone || "").replace(/\D/g, '');
+        if (!numero) return alert("Telefone inválido.");
         const mensagem = "Olá! Seu pedido já saiu para entrega 🚚. Muito obrigado e volte sempre. *Jhonny Bagdá agradece!*";
         const url = `https://wa.me/55${numero}?text=${encodeURIComponent(mensagem)}`;
         window.open(url, '_blank');
+
         div.classList.add('entrega-saiu');
+        marcarEntrega(docSnap.id); // salva no localStorage
       });
 
-      listaPedidos.appendChild(div);
-    });
+      // Botão para remover marcação local (opcional)
+      div.querySelector('.desmarcar-entrega').addEventListener('click', () => {
+        div.classList.remove('entrega-saiu');
+        desmarcarEntrega(docSnap.id);
+      });
 
-    // Agora toca alerta sempre que houver pedido novo
-    snapshot.docChanges().forEach(change => {
-      if (change.type === 'added') {
-        tocarAlerta();
+      container.appendChild(div);
+    }
+
+    // Pedido atual (mais recente)
+    const qAtual = query(collection(db, "pedidos"), orderBy("timestamp", "desc"), limit(1));
+    onSnapshot(qAtual, snapshot => {
+      listaPedidos.innerHTML = "";
+      if (snapshot.empty) {
+        listaPedidos.innerHTML = "<p class='sem-pedidos'>Nenhum pedido no momento.</p>";
+        return;
       }
+      snapshot.forEach(docSnap => renderPedido(docSnap, listaPedidos));
+      snapshot.docChanges().forEach(change => {
+        if (change.type === 'added') tocarAlerta();
+      });
     });
-  });
 
-  btnExcluirTudo.addEventListener('click', async () => {
-    const pedidos = await getDocs(collection(db, "pedidos"));
-    const promises = pedidos.docs.map(doc => deleteDoc(doc.ref));
-    await Promise.all(promises);
-  });
+    // Pedidos antigos (todos menos o mais recente)
+    const qAntigos = query(collection(db, "pedidos"), orderBy("timestamp", "desc"));
+    onSnapshot(qAntigos, snapshot => {
+      listaAntigos.innerHTML = "";
+      if (snapshot.empty || snapshot.size === 1) {
+        listaAntigos.innerHTML = "<p class='sem-pedidos'>Sem pedidos antigos.</p>";
+        return;
+      }
+      const antigos = snapshot.docs.slice(1);
+      antigos.forEach(docSnap => renderPedido(docSnap, listaAntigos));
+    });
+
+    // Excluir todos os pedidos
+    btnExcluirTudo.addEventListener('click', async () => {
+      if (!confirm("Tem certeza que deseja excluir TODOS os pedidos?")) return;
+      const pedidos = await getDocs(collection(db, "pedidos"));
+      const promises = pedidos.docs.map(d => deleteDoc(d.ref));
+      await Promise.all(promises);
+      // limpa marcações locais porque não há mais pedidos
+      localStorage.removeItem("pedidosEntregues");
+    });
   </script>
 </body>
 </html>
