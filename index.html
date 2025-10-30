@@ -1,207 +1,91 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
-
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
   <title>Painel de Pedidos</title>
-
   <style>
-@import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
 
-:root {
-  --bg: #eef2f7;
-  --card: #ffffff;
-  --text: #2c3e50;
-  --muted: #7f8c8d;
-  --accent: #3498db;
-  --ok: #27ae60;
-  --warn: #f39c12;
-  --danger: #e74c3c;
-  --border: #e1e8ed;
-}
+    :root {
+      --bg: #eef2f7;
+      --card: #ffffff;
+      --text: #2c3e50;
+      --muted: #7f8c8d;
+      --accent: #3498db;
+      --ok: #27ae60;
+      --warn: #f39c12;
+      --danger: #e74c3c;
+      --border: #e1e8ed;
+    }
 
-* {
-  box-sizing: border-box;
-}
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Inter', sans-serif;
+      background: linear-gradient(135deg, #eef2f7, #dfe6ee);
+      color: var(--text);
+      padding: 24px;
+      line-height: 1.5;
+    }
 
-body {
-  margin: 0;
-  font-family: 'Inter', sans-serif;
-  background: linear-gradient(135deg, #eef2f7, #dfe6ee);
-  color: var(--text);
-  padding: 24px;
-  line-height: 1.5;
-}
+    h1 {
+      font-size: 30px; font-weight: 700; margin-bottom: 24px; position: relative; color: var(--text);
+    }
+    h1::after { content: ""; display: block; width: 70px; height: 4px; background: var(--accent); border-radius: 2px; margin-top: 8px; }
+    h2 { margin: 32px 0 14px; font-size: 20px; color: var(--muted); font-weight: 600; letter-spacing: 0.5px; }
 
-/* Cabeçalhos */
-h1 {
-  font-size: 30px;
-  font-weight: 700;
-  margin-bottom: 24px;
-  position: relative;
-  color: var(--text);
-}
+    .toolbar { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
+    .toolbar button {
+      padding: 10px 18px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;
+      background: var(--accent); color: #fff; transition: all 0.2s ease;
+    }
+    .toolbar button:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,0.15); }
+    .excluir-tudo { background: var(--danger); }
 
-h1::after {
-  content: "";
-  display: block;
-  width: 70px;
-  height: 4px;
-  background: var(--accent);
-  border-radius: 2px;
-  margin-top: 8px;
-}
+    .lista { display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
 
-h2 {
-  margin: 32px 0 14px;
-  font-size: 20px;
-  color: var(--muted);
-  font-weight: 600;
-  letter-spacing: 0.5px;
-}
+    .pedido {
+      background: var(--card); border-radius: 18px; padding: 20px;
+      box-shadow: 0 6px 16px rgba(0,0,0,0.08); transition: transform 0.25s ease, box-shadow 0.25s ease;
+      border: 1px solid var(--border);
+    }
+    .pedido:hover { transform: translateY(-6px); box-shadow: 0 10px 24px rgba(0,0,0,0.12); }
+    .pedido.entrega-saiu { border: 3px solid var(--ok); }
 
-/* Toolbar */
-.toolbar {
-  display: flex;
-  gap: 12px;
-  margin-bottom: 24px;
-  flex-wrap: wrap;
-}
+    .status {
+      display: inline-block; padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 600;
+      margin-bottom: 12px; letter-spacing: 0.3px;
+    }
+    .status.confirmado { background: rgba(39, 174, 96, 0.12); color: var(--ok); }
+    .status.em-entrega { background: rgba(52, 152, 219, 0.12); color: var(--accent); }
 
-.toolbar button {
-  padding: 10px 18px;
-  border: none;
-  border-radius: 10px;
-  font-weight: 600;
-  cursor: pointer;
-  background: var(--accent);
-  color: #fff;
-  transition: all 0.2s ease;
-}
+    .itens { margin: 12px 0; }
+    .itens .item {
+      background: #fafbfc; border: 1px solid #e6e9ef; border-radius: 12px; padding: 10px 12px;
+      margin-top: 8px; font-size: 14px; color: #444; transition: background 0.2s ease, transform 0.2s ease;
+    }
+    .itens .item:hover { background: #f0f6ff; transform: translateX(4px); }
 
-.toolbar button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 6px 14px rgba(0,0,0,0.15);
-}
+    .itens .addon { font-size: 13px; color: #666; margin-left: 20px; font-style: italic; }
 
-.excluir-tudo {
-  background: var(--danger);
-}
+    .botoes { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+    .botoes button {
+      border: none; border-radius: 8px; padding: 10px 14px; font-weight: 600; cursor: pointer;
+      transition: all 0.2s ease; color: #fff; flex: 1; min-width: 120px;
+    }
+    .botoes button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
+    .botoes .excluir { background: var(--danger); }
+    .botoes .whatsapp { background: #2ecc71; }
+    .botoes .whatsapp-entrega { background: var(--accent); }
+    .botoes .desmarcar-entrega { background: #95a5a6; }
 
-/* Lista de pedidos */
-.lista {
-  display: grid;
-  gap: 20px;
-  grid-template-columns: repeat(auto-fill, minmax(340px, 1fr));
-}
-
-/* Card de pedido */
-.pedido {
-  background: var(--card);
-  border-radius: 18px;
-  padding: 20px;
-  box-shadow: 0 6px 16px rgba(0,0,0,0.08);
-  transition: transform 0.25s ease, box-shadow 0.25s ease;
-  border: 1px solid var(--border);
-}
-
-.pedido:hover {
-  transform: translateY(-6px);
-  box-shadow: 0 10px 24px rgba(0,0,0,0.12);
-}
-
-.pedido.entrega-saiu {
-  border: 3px solid var(--ok);
-}
-
-/* Status */
-.status {
-  display: inline-block;
-  padding: 6px 14px;
-  border-radius: 999px;
-  font-size: 13px;
-  font-weight: 600;
-  margin-bottom: 12px;
-  letter-spacing: 0.3px;
-}
-
-.status.confirmado {
-  background: rgba(39, 174, 96, 0.12);
-  color: var(--ok);
-}
-
-.status.em-entrega {
-  background: rgba(52, 152, 219, 0.12);
-  color: var(--accent);
-}
-
-/* Itens */
-.itens {
-  margin: 12px 0;
-}
-
-.itens .item {
-  background: #fafbfc;
-  border: 1px solid #e6e9ef;
-  border-radius: 12px;
-  padding: 10px 12px;
-  margin-top: 8px;
-  font-size: 14px;
-  color: #444;
-  transition: background 0.2s ease, transform 0.2s ease;
-}
-
-.itens .item:hover {
-  background: #f0f6ff;
-  transform: translateX(4px);
-}
-
-/* Botões de ação */
-.botoes {
-  display: flex;
-  gap: 10px;
-  margin-top: 14px;
-  flex-wrap: wrap;
-}
-
-.botoes button {
-  border: none;
-  border-radius: 8px;
-  padding: 10px 14px;
-  font-weight: 600;
-  cursor: pointer;
-  transition: all 0.2s ease;
-  color: #fff;
-  flex: 1;
-  min-width: 120px;
-}
-
-.botoes button:hover {
-  transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0,0,0,0.15);
-}
-
-.botoes .excluir { background: var(--danger); }
-.botoes .whatsapp { background: #2ecc71; }
-.botoes .whatsapp-entrega { background: var(--accent); }
-.botoes .desmarcar-entrega { background: #95a5a6; }
-
-/* Mensagem sem pedidos */
-.sem-pedidos {
-  color: var(--muted);
-  font-size: 15px;
-  border: 1px dashed var(--border);
-  padding: 16px;
-  border-radius: 14px;
-  background: #f9fbfd;
-  text-align: center;
-  font-style: italic;
-}
-
+    .sem-pedidos {
+      color: var(--muted); font-size: 15px; border: 1px dashed var(--border); padding: 16px;
+      border-radius: 14px; background: #f9fbfd; text-align: center; font-style: italic;
+    }
   </style>
 </head>
-
 <body>
   <h1>📦 Painel de Pedidos</h1>
 
@@ -227,8 +111,9 @@ h2 {
       deleteDoc, doc, getDocs
     } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-firestore.js";
 
+    // ATENÇÃO: substitua pela sua chave (igual ao site)
     const firebaseConfig = {
-      apiKey: "SUA_API_KEY",
+      apiKey: "AIzaSyBHBcJHtU_o8tjsJCSoCsO665M3N72mF8g",
       authDomain: "meusiteaki2025.firebaseapp.com",
       projectId: "meusiteaki2025",
       storageBucket: "meusiteaki2025.firebasestorage.app",
@@ -253,29 +138,18 @@ h2 {
       try { return JSON.parse(localStorage.getItem("pedidosEntregues") || "[]"); }
       catch { return []; }
     }
-    function setEntregues(arr) {
-      localStorage.setItem("pedidosEntregues", JSON.stringify(arr));
-    }
+    function setEntregues(arr) { localStorage.setItem("pedidosEntregues", JSON.stringify(arr)); }
     function marcarEntrega(id) {
       const entregues = getEntregues();
-      if (!entregues.includes(id)) {
-        entregues.push(id);
-        setEntregues(entregues);
-      }
+      if (!entregues.includes(id)) { entregues.push(id); setEntregues(entregues); }
     }
-    function desmarcarEntrega(id) {
-      const entregues = getEntregues().filter(x => x !== id);
-      setEntregues(entregues);
-    }
-    function isEntregue(id) {
-      return getEntregues().includes(id);
-    }
+    function desmarcarEntrega(id) { setEntregues(getEntregues().filter(x => x !== id)); }
+    function isEntregue(id) { return getEntregues().includes(id); }
 
     // Ativar som
     btnAtivarSom.addEventListener('click', async () => {
       try { await bip.play(); } catch (_) { }
-      bip.pause();
-      bip.currentTime = 0;
+      bip.pause(); bip.currentTime = 0;
       somAtivado = true;
       alert("Som ativado! Agora os alertas vão funcionar.");
       btnAtivarSom.style.display = "none";
@@ -283,13 +157,8 @@ h2 {
 
     function tocarAlerta() {
       if (!somAtivado) return;
-      bip.volume = 1.0;
-      bip.currentTime = 0;
-      bip.play();
-      setTimeout(() => {
-        bip.currentTime = 0;
-        bip.play();
-      }, 1000);
+      bip.volume = 1.0; bip.currentTime = 0; bip.play();
+      setTimeout(() => { bip.currentTime = 0; bip.play(); }, 1000);
     }
 
     function formatarDinheiro(valor) {
@@ -311,7 +180,17 @@ h2 {
       const subtotal = itens.reduce((acc, item) => {
         const preco = parseFloat(String(item.price || 0).replace(',', '.')) || 0;
         const qtd = parseInt(item.quantity || 0);
-        return acc + (preco * qtd);
+        // soma item
+        let soma = acc + (preco * qtd);
+        // soma adicionais (se houver)
+        if (Array.isArray(item.addons)) {
+          item.addons.forEach(a => {
+            const ap = parseFloat(String(a.price || 0).replace(',', '.')) || 0;
+            const aq = parseInt(a.quantity || 0);
+            soma += ap * aq;
+          });
+        }
+        return soma;
       }, 0);
       const entrega = parseFloat(String(pedido.taxaEntrega || 0).replace(',', '.')) || 0;
       return subtotal + entrega;
@@ -325,10 +204,24 @@ h2 {
       const statusHtml = textoStatus(pedido.status);
       const total = calcularTotal(pedido);
 
-      // Mantém borda verde se marcado no localStorage
-      if (isEntregue(docSnap.id)) {
-        div.classList.add('entrega-saiu');
-      }
+      if (isEntregue(docSnap.id)) div.classList.add('entrega-saiu');
+
+      // Render dos itens + adicionais
+      const itensHtml = (Array.isArray(pedido.itens) ? pedido.itens : []).map(item => {
+        let addonsHTML = "";
+        if (item.addons && item.addons.length > 0) {
+          addonsHTML = item.addons.map(a =>
+            `<div class="addon">↳ ${a.quantity || 0}x ${a.name || "-"}</div>`
+          ).join('');
+        }
+        const brandText = item.brand ? ` (${item.brand})` : '';
+        return `
+          <div class="item">
+            ${item.quantity || 0}x ${item.name || "-"}${brandText} — R$ ${formatarDinheiro(item.price || 0)}
+            ${addonsHTML}
+          </div>
+        `;
+      }).join('') || "<div class='item'>Nenhum item</div>";
 
       div.innerHTML = `
         ${statusHtml}
@@ -338,9 +231,7 @@ h2 {
         <p><strong>💳 Pagamento:</strong> ${pedido.pagamento || "-"}</p>
         <div class="itens">
           <strong>🍔 Itens:</strong>
-          ${(Array.isArray(pedido.itens) ? pedido.itens : []).map(item => `
-            <div class="item">${item.quantity || 0}x ${item.name || "-"} — R$ ${formatarDinheiro(item.price || 0)}</div>
-          `).join('') || "<div class='item'>Nenhum item</div>"}
+          ${itensHtml}
         </div>
         <p><strong>🚚 Entrega:</strong> R$ ${formatarDinheiro(pedido.taxaEntrega)}</p>
         <p><strong>💰 Total:</strong> R$ ${formatarDinheiro(total)}</p>
@@ -357,7 +248,7 @@ h2 {
       div.querySelector('.excluir').addEventListener('click', async () => {
         if (confirm("Tem certeza que deseja excluir este pedido?")) {
           await deleteDoc(doc(db, "pedidos", docSnap.id));
-          desmarcarEntrega(docSnap.id); // limpa marcação local
+          desmarcarEntrega(docSnap.id);
         }
       });
 
@@ -381,10 +272,10 @@ h2 {
         window.open(url, '_blank');
 
         div.classList.add('entrega-saiu');
-        marcarEntrega(docSnap.id); // salva no localStorage
+        marcarEntrega(docSnap.id);
       });
 
-      // Botão para remover marcação local (opcional)
+      // Remover marcação local
       div.querySelector('.desmarcar-entrega').addEventListener('click', () => {
         div.classList.remove('entrega-saiu');
         desmarcarEntrega(docSnap.id);
@@ -393,7 +284,7 @@ h2 {
       container.appendChild(div);
     }
 
-    // Pedido atual (mais recente)
+    // Pedido atual (mais recente) com alerta sonoro em novo pedido
     const qAtual = query(collection(db, "pedidos"), orderBy("timestamp", "desc"), limit(1));
     onSnapshot(qAtual, snapshot => {
       listaPedidos.innerHTML = "";
@@ -425,7 +316,6 @@ h2 {
       const pedidos = await getDocs(collection(db, "pedidos"));
       const promises = pedidos.docs.map(d => deleteDoc(d.ref));
       await Promise.all(promises);
-      // limpa marcações locais porque não há mais pedidos
       localStorage.removeItem("pedidosEntregues");
     });
   </script>
