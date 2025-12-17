@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Painel de Pedidos - Jhonny Bagdá</title>
+
+  <!-- SweetAlert2 -->
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+
+  <style>
+    :root{
+      --accent:#111;
+      --danger:#e53935;
+      --warn:#ff9800;
+      --ok:#33d39f;
+      --bg:#1e1e1e;
+      --card:#2c2c2c;
+      --text:#f5f5f5;
+      --muted:#9e9e9e;
+      --line:#444;
+    }
+
+    body { font-family: Arial, sans-serif; margin:0; background:var(--bg); color:var(--text); }
+
+    header { background:var(--accent); padding:16px; text-align:center; }
+    header h1 { margin:0; color:var(--text); }
+    header .sub { color:var(--muted); margin:4px 0 8px; }
+    #contador { font-weight:bold; margin:6px 0 12px; }
+
+    .bar { display:flex; gap:8px; justify-content:center; flex-wrap:wrap; }
+    .btn { border:none; border-radius:8px; padding:8px 12px; font-weight:700; cursor:pointer; display:flex; align-items:center; gap:6px; }
+    #apagarTudo { background:var(--danger); color:#fff; }
+    #toggleSom { background:#555; color:#fff; }
+    #toggleSom.ativo { background:var(--ok); color:#062a25; }
+
+    .mesas { display:grid; grid-template-columns:repeat(auto-fill,minmax(320px,1fr)); gap:16px; padding:16px; max-width:1200px; margin:0 auto; }
+
+    .mesa { background:var(--card); border-radius:10px; box-shadow:0 2px 8px rgba(0,0,0,.4); padding:14px; }
+    .mesa h2 { margin:0 0 4px; }
+
+    .categoriaTitulo {
+      margin-top:12px;
+      font-size:1rem;
+      font-weight:bold;
+      color:var(--warn);
+    }
+
+    .pedido { display:flex; justify-content:space-between; gap:8px; padding:6px 0; border-bottom:1px dashed var(--line); }
+    .pedido:last-child { border-bottom:none; }
+
+    .total { font-weight:800; margin-top:18px; font-size:1.05rem; }
+
+    .actions { margin-top:12px; display:flex; gap:8px; flex-wrap:wrap; }
+    .btn-print { background:var(--warn); color:#fff; }
+    .btn-kitchen { background:#111; color:#fff; border:1px solid var(--line); }
+    .btn-clear { background:var(--danger); color:#fff; }
+
+    @media print {
+      header, .actions { display:none !important; }
+      .mesa { width:80mm; box-shadow:none; border-radius:0; }
+      .total { margin-top:30px; font-size:1.2rem; }
+    }
+  </style>
+</head>
+
+<body>
+  <header>
+    <h1>📊 Painel de Pedidos</h1>
+    <div class="sub">Atualização em tempo real</div>
+    <div id="contador">Total de pedidos ativos: 0 | Valor: R$ 0,00</div>
+
+    <div class="bar">
+     <a href="index.html"> <button class="btn">Voltar para Pedidos</button></a>
+      <button id="apagarTudo" class="btn">🗑️ Apagar tudo</button>
+      <button id="toggleSom" class="btn">🔕 Som OFF</button>
+    </div>
+  </header>
+
+  <section class="mesas" id="mesas"></section>
+
+  <script type="module">
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import {
+      getFirestore, collection, onSnapshot, deleteDoc, doc,
+      getDocs, query, where
+    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyDUhKpLopIApQaiEoGaxBXjZzmkROvdaJI",
+      authDomain: "app-de-demandas.firebaseapp.com",
+      projectId: "app-de-demandas",
+      storageBucket: "app-de-demandas.appspot.com",
+      messagingSenderId: "857555550806",
+      appId: "1:857555550806:web:e7cb602c680585f6c171f7",
+      measurementId: "G-MZP03Y2R4J"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const db = getFirestore(app);
+
+    const mesasEl = document.getElementById('mesas');
+    const toggleSomBtn = document.getElementById('toggleSom');
+    const apagarTudoBtn = document.getElementById('apagarTudo');
+    const contadorEl = document.getElementById('contador');
+
+    let somAtivo = false;
+    let pedidosAntigos = [];
+    let mapaPrecos = {};
+    let contadorPedidos = 0;
+    let contadorValor = 0;
+
+    function tocarSomPersonalizado(){
+      const ctx = new (window.AudioContext || window.webkitAudioContext)();
+      function beep(duracao){
+        const osc = ctx.createOscillator();
+        const gain = ctx.createGain();
+        osc.type = "sine";
+        osc.frequency.value = 600;
+        gain.gain.value = 0.2;
+        osc.connect(gain);
+        gain.connect(ctx.destination);
+        osc.start();
+        osc.stop(ctx.currentTime + duracao);
+      }
+      beep(0.4);
+      setTimeout(()=>beep(0.4), 600);
+      const audio = new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/audio_7a6f2f6f3a.mp3?filename=kitchen-bell-14612.mp3");
+      audio.play();
+    }
+
+    toggleSomBtn.onclick = ()=>{
+      somAtivo = !somAtivo;
+      if(somAtivo){
+        toggleSomBtn.textContent = "🔔 Som ON";
+        toggleSomBtn.classList.add("ativo");
+        Swal.fire({ icon:'success', title:'Som ativado' });
+      } else {
+        toggleSomBtn.textContent = "🔕 Som OFF";
+        toggleSomBtn.classList.remove("ativo");
+        Swal.fire({ icon:'info', title:'Som desativado' });
+      }
+    };
+
+    onSnapshot(collection(db, "pedidos"), (snapshot)=>{
+      const pedidosPorMesa = {};
+      const pedidosIdsAtual = [];
+      const precosAtuais = {};
+
+      snapshot.forEach(d=>{
+        const data = d.data();
+        const mesa = data.mesa || "Sem mesa";
+        if(!pedidosPorMesa[mesa]) pedidosPorMesa[mesa] = [];
+        const preco = Number(data.preco) || 0;
+        pedidosPorMesa[mesa].push({ ...data, id: d.id, preco });
+        pedidosIdsAtual.push(d.id);
+        precosAtuais[d.id] = preco;
+      });
+
+      const novos = pedidosIdsAtual.filter(id => !pedidosAntigos.includes(id));
+      if(novos.length > 0){
+        novos.forEach(id=>{
+          contadorPedidos += 1;
+          const val = precosAtuais[id] ?? 0;
+          contadorValor += val;
+          mapaPrecos[id] = val;
+        });
+        if(somAtivo){ tocarSomPersonalizado(); }
+      }
+
+      contadorEl.textContent =
+        "Total de pedidos ativos: " + contadorPedidos +
+        " | Valor: R$ " + contadorValor.toFixed(2);
+
+      pedidosAntigos = pedidosIdsAtual;
+
+      renderMesas(pedidosPorMesa);
+    });
+
+    function renderMesas(pedidosPorMesa){
+      mesasEl.innerHTML = "";
+      const mesas = Object.keys(pedidosPorMesa).sort((a,b)=> {
+        const na = parseInt(a,10), nb = parseInt(b,10);
+        if(isNaN(na) || isNaN(nb)) return a.localeCompare(b);
+        return na - nb;
+      });
+
+      mesas.forEach(mesa=>{
+        const pedidos = pedidosPorMesa[mesa];
+
+        const grupos = {};
+        pedidos.forEach(p => {
+          const gid = p.grupoId || p.id;
+          if (!grupos[gid]) grupos[gid] = { principal: null, adicionais: [] };
+
+          if (p.categoria === "Adicional") {
+            grupos[gid].adicionais.push(p);
+          } else {
+            grupos[gid].principal = p;
+          }
+        });
+
+        const lanches = [];
+        const bebidas = [];
+        const porcoes = [];
+
+        Object.values(grupos).forEach(g => {
+          if (!g.principal) return;
+
+          if (g.principal.categoria === "Lanches") lanches.push(g);
+          else if (g.principal.categoria === "Bebidas") bebidas.push(g);
+          else porcoes.push(g);
+        });
+
+        let totalMesa = 0;
+
+        const div = document.createElement('div');
+        div.className = 'mesa';
+        div.id = "mesa-"+mesa;
+
+        const title = document.createElement('h2');
+        title.textContent = "Mesa " + mesa;
+        div.appendChild(title);
+
+        function renderGrupo(titulo, lista){
+          if(lista.length === 0) return;
+
+          const h = document.createElement('div');
+          h.className = "categoriaTitulo";
+          h.textContent = titulo;
+          div.appendChild(h);
+
+          lista.forEach(grupo => {
+            const principal = grupo.principal;
+            let subtotal = Number(principal.preco);
+
+            const row = document.createElement('div');
+            row.className = 'pedido';
+
+            const nome = principal.marca
+              ? `${principal.nome} - ${principal.marca}`
+              : principal.nome;
+
+            row.innerHTML = `<span><b>${nome}</b></span><span>R$ ${principal.preco.toFixed(2)}</span>`;
+            div.appendChild(row);
+
+            grupo.adicionais.forEach(add => {
+              subtotal += Number(add.preco);
+              const addRow = document.createElement('div');
+              addRow.className = 'pedido';
+              addRow.style.paddingLeft = "20px";
+              addRow.innerHTML = `<span>+ ${add.nome}</span><span>R$ ${add.preco.toFixed(2)}</span>`;
+              div.appendChild(addRow);
+            });
+
+            totalMesa += subtotal;
+          });
+        }
+
+        renderGrupo("🍔 Lanches", lanches);
+        renderGrupo("🥤 Bebidas", bebidas);
+        renderGrupo("🍟 Porções", porcoes);
+
+        const totalEl = document.createElement('div');
+        totalEl.className = 'total';
+        totalEl.textContent = "Total: R$ " + totalMesa.toFixed(2);
+        div.appendChild(totalEl);
+
+        const actions = document.createElement('div');
+        actions.className = 'actions';
+        actions.innerHTML = `
+          <button class="btn btn-kitchen" onclick="imprimirCozinha('${mesa}')">🍳 Imprimir Cozinha</button>
+          <button class="btn btn-print" onclick="imprimirMesa('${mesa}')">🖨️ Imprimir</button>
+          <button class="btn btn-clear" onclick="apagarMesa('${mesa}')">🗑️ Apagar mesa</button>
+        `;
+        div.appendChild(actions);
+
+        mesasEl.appendChild(div);
+      });
+    }
+
+    apagarTudoBtn.onclick = async ()=>{
+      const r = await Swal.fire({
+        icon:'warning', title:'Apagar todos os pedidos?',
+        showCancelButton:true, confirmButtonText:'Sim'
+      });
+      if(!r.isConfirmed) return;
+
+      const snap = await getDocs(collection(db,"pedidos"));
+      const deletions = [];
+      snap.forEach(d=> deletions.push(deleteDoc(doc(db,"pedidos",d.id))));
+      await Promise.all(deletions);
+
+      pedidosAntigos = [];
+      mapaPrecos = {};
+      contadorPedidos = 0;
+      contadorValor = 0;
+      contadorEl.textContent = "Total de pedidos ativos: 0 | Valor: R$ 0,00";
+
+      Swal.fire({ icon:'success', title:'Todos apagados', timer:1500, showConfirmButton:false });
+    };
+
+    window.apagarMesa = async (mesa)=>{
+      const r = await Swal.fire({
+        icon:'warning', title:`Apagar mesa ${mesa}?`,
+        showCancelButton:true, confirmButtonText:'Sim'
+      });
+      if(!r.isConfirmed) return;
+
+      const q = query(collection(db,"pedidos"), where("mesa","==",mesa));
+      const snap = await getDocs(q);
+      const deletions = [];
+      snap.forEach(d=> {
+        deletions.push(deleteDoc(doc(db,"pedidos",d.id)));
+        delete mapaPrecos[d.id];
+      });
+      await Promise.all(deletions);
+
+      Swal.fire({ icon:'success', title:`Mesa ${mesa} apagada`, timer:1500, showConfirmButton:false });
+    };
+
+    window.imprimirMesa = (mesa)=>{
+      const div = document.getElementById("mesa-"+mesa);
+      if(!div) return;
+
+      const conteudo = div.cloneNode(true);
+      const actions = conteudo.querySelector('.actions');
+      if(actions) actions.remove();
+
+      const footer = document.createElement('div');
+      footer.className = 'footer';
+      footer.innerHTML = `
+        <div style="margin-top:20px;font-size:0.95rem;text-align:center;">
+          <p><strong>Jhonny Bagdá - Lanchonete</strong><br>
+          Endereço: Rua da Draga (em frente ao estádio municipal), Itinga - MA<br>
+          Tel: (99) 99226-1907<br>
+          Horário: Seg–Qui 18h–00h | Sex–Dom 18h30–01h</p>
+          <p style="margin-top:8px;">Acesse nosso cardápio online:</p>
+          <img id="qrcode-img" alt="QR Code" style="margin-top:6px;width:120px;height:120px;">
+        </div>
+      `;
+      conteudo.appendChild(footer);
+
+      const printWindow = window.open('', '', 'width=420,height=700');
+      const siteUrl = "https://meusiteaki.github.io/JhonnyBagda/";
+      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(siteUrl)}`;
+
+      printWindow.document.write('<html><head><title>Imprimir Mesa '+mesa+'</title>');
+      printWindow.document.write('<style>@page{size:80mm auto;margin:5mm;} body{font-family:Arial;}</style>');
+      printWindow.document.write('</head><body>');
+      printWindow.document.write(conteudo.innerHTML);
+      printWindow.document.write('</body></html>');
+      printWindow.document.close();
+
+      printWindow.onload = ()=>{
+        const img = printWindow.document.getElementById('qrcode-img');
+        img.src = qrUrl;
+        img.onload = ()=>{
+          printWindow.focus();
+          printWindow.print();
+          setTimeout(()=>printWindow.close(), 500);
+        };
+      };
+    };
+
+    window.imprimirCozinha = (mesa)=>{
+      const div = document.getElementById("mesa-"+mesa);
+      if(!div) return;
+
+      const linhas = Array.from(div.querySelectorAll('.pedido'));
+      const itens = linhas.map(l => l.querySelector('span')?.textContent || "").filter(Boolean);
+
+      const grupos = {};
+      itens.forEach(nome=>{
+        grupos[nome] = (grupos[nome] || 0) + 1;
+      });
+
+      const printWindow = window.open('', '', 'width=420,height=700');
+      printWindow.document.write('<html><head><title>Cozinha - Mesa '+mesa+'</title>');
+      printWindow.document.write(`
+        <style>
+          @page{size:80mm auto;margin:5mm;}
+          body{font-family:Arial;}
+          h2{margin:0 0 10px;}
+          .linha{display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed #999;}
+        </style>
+      `);
+      printWindow.document.write('</head><body>');
+      printWindow.document.write('<h2>🍳 Cozinha - Mesa '+mesa+'</h2>');
+
+      Object.keys(grupos).forEach(nome=>{
+        const qtd = grupos[nome];
+        printWindow.document.write(`<div class="linha"><span>${nome}</span><span>x${qtd}</span></div>`);
+      });
+
+      printWindow.document.write('</body></html>');
+      printWindow.document.close();
+
+      printWindow.onload = ()=>{
+        printWindow.focus();
+        printWindow.print();
+        setTimeout(()=>printWindow.close(), 400);
+      };
+    };
+  </script>
+</body>
+</html>
+
