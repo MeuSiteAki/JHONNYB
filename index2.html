@@ -333,46 +333,6 @@ body {
     opacity: 1;
     bottom: 50px; /* Move para cima ao aparecer */
 }
-
-/* Estilo para adicionais dentro do carrinho */
-/* Estilo definitivo para adicionais no carrinho */
-#cart-items .cart-item-addons {
-  font-size: 0.75rem !important;
-  color: #777 !important;
-  margin-left: 35px !important;
-  margin-top: 2px !important;
-  line-height: 1.2 !important;
-  font-style: italic !important;
-}
-
-#cart-items .cart-item-addons span {
-  display: block !important;
-  padding-left: 10px !important;
-  position: relative !important;
-}
-
-#cart-items .cart-item-addons span::before {
-  content: "↳";
-  position: absolute;
-  left: 0;
-  color: #aaa;
-  font-size: 0.7rem;
-}
-.close-batata-addons {
-  font-size: 32px;   /* aumenta o tamanho */
-  font-weight: bold;
-  color: #333;
-  cursor: pointer;
-  position: absolute;
-  top: 10px;
-  right: 20px;
-  transition: color 0.3s;
-}
-
-.close-batata-addons:hover {
-  color: #000;       /* fica mais escuro ao passar o mouse */
-}
-
 </style>
 <body>
     <div id="toast-notification"></div>
@@ -408,15 +368,13 @@ body {
   <div id="status-banner" class="status-banner">
     <span id="status-text">Verificando horário...</span>
   </div>
-<!-- Promoção -->
-
-  <!-- <section class="promo-box">
+  <section class="promo-box">
   <div class="promo-content">
     <h2>🍔 Promoção Especial</h2>
     <p>Na compra de <strong>qualquer lanche</strong>, ganhe<br>
        <span class="highlight">1 refrigerante 250ml grátis</span> 🥤</p>
   </div>
-</section> -->
+</section>
 </header>
 <!-- Quadro de Promoção -->
 
@@ -793,44 +751,9 @@ document.addEventListener('DOMContentLoaded', () => {
             </div>
         </section>
 
-        <!-- acompanhamentos -->
-
-       <section id="batata" class="menu-section">
-  <h2><i class="fa-solid fa-bacon"></i> Batatinha</h2>
-  <div class="product-grid">
-    <div class="product-card">
-      <img src="batata.jpg" alt="">
-      <h3>Porção de batata frita</h3>
-      <span class="price">R$ 17,00</span>
-      <button style="background-color:  #c69c6d ;" class="add-batata-btn">Adicionar</button>
-    </div>
-  </div>
-</section>
-
-<!-- Modal de adicionais da Batata -->
-<div id="batata-addons-modal" class="modal">
-  <div class="modal-content">
-    <span class="close-batata-addons">&times;</span>
-    <h3>Deseja adicionais?</h3>
-
-    <div class="addon-option"><span>Bacon (R$3,00)</span>
-      <input type="number" min="0" value="0" data-name="Bacon" data-price="3">
-    </div>
-    <div class="addon-option"><span>Calabresa (R$3,00)</span>
-      <input type="number" min="0" value="0" data-name="Calabresa" data-price="3">
-    </div>
-    <div class="addon-option"><span>Cheddar (R$2,00)</span>
-      <input type="number" min="0" value="0" data-name="Cheddar" data-price="2">
-    </div>
-
-    <button id="confirm-batata-addons" class="submit-order-btn">Confirmar</button>
-  </div>
-</div>
-
-</script>
         <!-- bebidas -->
 
-         <section id="bebidas" class="menu-section">
+        <section id="bebidas" class="menu-section">
             <h2><i class="fa-solid fa-glass-water"></i>Sucos 300ml</h2>
             <div class="product-grid">
                 <div class="product-card">
@@ -1021,101 +944,6 @@ document.addEventListener('DOMContentLoaded', () => {
 };
 
 </script>
-<!-- Botão flutuante de adicionais -->
-<button id="addons-float-btn" class="float-btn">➕ Adicionais</button>
-<div id="global-addons-modal" class="modal">
-  <div class="modal-content">
-    <span style="font-size: 50px; cursor: pointer;" class="close-global-addons">&times;</span>
-    <h3>Escolha seus adicionais</h3>
-
-    <h4>Carnes</h4>
-    <div class="addon-option"><span>Carne de Hambúrguer (R$5,00)</span>
-      <input type="number" min="0" value="0" data-name="Carne de Hambúrguer" data-price="5">
-    </div>
-    <div class="addon-option"><span>Filé de Frango (R$5,00)</span>
-      <input type="number" min="0" value="0" data-name="Filé de Frango" data-price="5">
-    </div>
-    <div class="addon-option"><span>Filé (R$7,00)</span>
-      <input type="number" min="0" value="0" data-name="Filé" data-price="7">
-    </div>
-
-    <h4>Complementos</h4>
-    <div class="addon-option"><span>Presunto (R$2,00)</span>
-      <input type="number" min="0" value="0" data-name="Presunto" data-price="2">
-    </div>
-    <div class="addon-option"><span>Queijo (R$2,00)</span>
-      <input type="number" min="0" value="0" data-name="Queijo" data-price="2">
-    </div>
-    <div class="addon-option"><span>Calabresa (R$2,00)</span>
-      <input type="number" min="0" value="0" data-name="Calabresa" data-price="2">
-    </div>
-    <div class="addon-option"><span>Ovo (R$2,00)</span>
-      <input type="number" min="0" value="0" data-name="Ovo" data-price="2">
-    </div>
-    <div class="addon-option"><span>Bacon (R$3,00)</span>
-      <input type="number" min="0" value="0" data-name="Bacon" data-price="3">
-    </div>
-    <div class="addon-option"><span>Salsicha (R$1,00)</span>
-      <input type="number" min="0" value="0" data-name="Salsicha" data-price="1">
-    </div>
-    <h4>Vegetais</h4>
-<div class="addon-option"><span>Alface (R$1,00)</span>
-  <input type="number" min="0" value="0" data-name="Alface" data-price="1">
-</div>
-<div class="addon-option"><span>Tomate (R$1,00)</span>
-  <input type="number" min="0" value="0" data-name="Tomate" data-price="1">
-</div>
-<div class="addon-option"><span>Cebola (R$2,00)</span>
-  <input type="number" min="0" value="0" data-name="Cebola" data-price="2">
-</div>
-
-<h4>Outros</h4>
-<div class="addon-option"><span>Banana (R$3,00)</span>
-  <input type="number" min="0" value="0" data-name="Banana" data-price="3">
-</div>
-<div class="addon-option"><span>Cheddar (R$2,00)</span>
-  <input type="number" min="0" value="0" data-name="Cheddar" data-price="2">
-</div>
-<div class="addon-option"><span>Catupiry (R$2,00)</span>
-  <input type="number" min="0" value="0" data-name="Catupiry" data-price="2">
-</div>
-
-<h4>Molhos</h4>
-<div class="addon-option"><span>Mostarda (R$1,00)</span>
-  <input type="number" min="0" value="0" data-name="Mostarda" data-price="1">
-</div>
-<div class="addon-option"><span>Barbecue (R$1,00)</span>
-  <input type="number" min="0" value="0" data-name="Barbecue" data-price="1">
-</div>
-<div class="addon-option"><span>Maionese Temperada (R$1,00)</span>
-  <input type="number" min="0" value="0" data-name="Maionese Temperada" data-price="1">
-</div>
-
-
-    <button id="confirm-global-addons" class="submit-order-btn">Adicionar</button>
-  </div>
-</div>
-
-<style>
-  #addons-float-btn {
-  position: fixed;
-  bottom: 230px; /* fica acima do botão do carrinho */
-  right: 20px;
-  background: #ffc107;
-  color: #000;
-  border: none;
-  border-radius: 50px;
-  padding: 12px 18px;
-  font-size: 16px;
-  cursor: pointer;
-  box-shadow: 0 4px 8px rgba(0,0,0,0.2);
-
-}
-#addons-float-btn:hover {
-  background: #e0a800;
-}
-
-</style>
 
 <aside class="cart-sidebar" id="cart-sidebar">
     <button class="close-cart-btn" id="close-cart-btn">&times;</button>
@@ -1244,44 +1072,6 @@ document.addEventListener('DOMContentLoaded', () => {
         </button>
     </form>
 </div>
-<script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
-<script>
-document.getElementById("payment").addEventListener("change", function() {
-    const payment = this.value;
-    const pixAlert = document.getElementById("pix-alert");
-    const observation = document.getElementById("observation");
-
-    // Mostrar aviso PIX
-    if (payment === "PIX") {
-        pixAlert.style.display = "block";
-    } else {
-        pixAlert.style.display = "none";
-    }
-
-    // Se escolher Dinheiro, abrir pop-up
-    if (payment === "Dinheiro") {
-        Swal.fire({
-            title: 'Informe o valor em dinheiro',
-            input: 'number',
-            inputAttributes: {
-                min: 0,
-                step: 0.01
-            },
-            inputPlaceholder: 'Ex: 50.00',
-            confirmButtonText: 'Confirmar',
-            showCancelButton: true,
-            cancelButtonText: 'Cancelar'
-        }).then((result) => {
-            if (result.isConfirmed && result.value) {
-                observation.value = `Troco para: R$${parseFloat(result.value).toFixed(2)}`;
-            } else {
-                // Se cancelar, volta o select para vazio
-                document.getElementById("payment").value = "";
-            }
-        });
-    }
-});
-</script>
 
 <!-- Pop-up -->
 <div class="popup-overlay" id="popup-overlay">
@@ -1291,144 +1081,33 @@ document.getElementById("payment").addEventListener("change", function() {
         <button id="confirmar-valor">Confirmar</button>
     </div>
 </div>
-<!-- Modal PIX -->
-<!-- Modal PIX -->
-<div id="pix-modal" class="pix-modal">
-  <div class="pix-modal-content">
-    <span class="pix-close">&times;</span>
-    <h3>Pagamento via PIX</h3>
-    <div id="pix-qrcode"></div>
-    <textarea id="pix-copia-cola" readonly></textarea>
-    <button id="btn-copiar-pix">📋 Copiar Código</button>
-    <small>Escaneie o QR Code ou copie o código acima e cole no app do seu banco.</small>
-  </div>
-</div>
-
-<!-- PIX modal -->
-<script>
-  const btnCopiarPix = document.getElementById('btn-copiar-pix');
-const pixCopiaCola = document.getElementById('pix-copia-cola');
-
-btnCopiarPix.addEventListener('click', async () => {
-  const codigoPix = pixCopiaCola.value.trim();
-
-  if (!codigoPix) {
-    alert("⚠️ Nenhum código PIX gerado ainda.");
-    return;
-  }
-
-  try {
-    // Método moderno (funciona em HTTPS, como no GitHub Pages)
-    await navigator.clipboard.writeText(codigoPix);
-    btnCopiarPix.textContent = "✅ Copiado!";
-    setTimeout(() => btnCopiarPix.textContent = "📋 Copiar Código", 2000);
-  } catch (err) {
-    // Fallback: seleciona o campo para o usuário copiar manualmente
-    pixCopiaCola.focus();
-    pixCopiaCola.select();
-    pixCopiaCola.setSelectionRange(0, 99999); // mobile
-    alert("📋 Código selecionado! Agora pressione Ctrl+C (ou toque longo no celular) para copiar.");
-  }
-});
-
-
-
-</script>
-<style>
-.pix-modal {
-  display: none;
-  position: fixed;
-  top: 0; left: 0;
-  width: 100%; height: 100%;
-  background: rgba(0,0,0,0.6);
-  justify-content: center;
-  align-items: center;
-  z-index: 10000;
-  animation: fadeIn 0.3s ease;
-}
-
-.pix-modal-content {
-  background: #ffffff;
-  padding: 25px 20px;
-  border-radius: 14px;
-  text-align: center;
-  max-width: 380px;
-  width: 90%;
-  box-shadow: 0 8px 25px rgba(0,0,0,0.25);
-  animation: slideUp 0.4s ease;
-  position: relative;
-}
-
-.pix-modal-content h3 {
-  margin-bottom: 15px;
-  font-size: 20px;
-  color: #2c3e50;
-}
-
-#pix-qrcode {
-  margin: 15px auto;
-  padding: 12px;
-  background: #f9f9f9;
-  border-radius: 10px;
-  display: inline-block;
-}
-
-#pix-copia-cola {
-  width: 100%;
-  margin-top: 12px;
-  padding: 10px;
-  border: 1px solid #ddd;
-  border-radius: 6px;
-  font-size: 14px;
-  background: #fdfdfd;
-  resize: none;
-  height: 70px;
-}
-
-#btn-copiar-pix {
-  margin-top: 12px;
-  padding: 10px 15px;
-  background: #28a745;
-  color: #fff;
-  border: none;
-  border-radius: 6px;
-  font-size: 15px;
-  cursor: pointer;
-  transition: background 0.2s;
-}
-#btn-copiar-pix:hover {
-  background: #218838;
-}
-
-.pix-close {
-  position: absolute;
-  top: 12px;
-  right: 15px;
-  font-size: 22px;
-  color: #888;
-  cursor: pointer;
-  transition: color 0.2s;
-}
-.pix-close:hover {
-  color: #000;
-}
-
-@keyframes fadeIn {
-  from { opacity: 0; } to { opacity: 1; }
-}
-@keyframes slideUp {
-  from { transform: translateY(40px); opacity: 0; }
-  to { transform: translateY(0); opacity: 1; }
-}
-
-
-</style>
-
-<!-- Lib para gerar QRCode -->
-<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-
 
 <script>
+    const paymentSelect = document.getElementById('payment');
+    const pixAlert = document.getElementById('pix-alert');
+    const observation = document.getElementById('observation');
+    const popupOverlay = document.getElementById('popup-overlay');
+    const confirmarValorBtn = document.getElementById('confirmar-valor');
+    const valorPagoInput = document.getElementById('valor-pago');
+
+    // Defina o valor total do pedido
+    const totalPedido = 0.00; // exemplo
+
+    paymentSelect.addEventListener('change', function () {
+        if (this.value === 'PIX') {
+            pixAlert.style.display = 'block';
+            observation.value = '';
+        } 
+        else if (this.value === 'Dinheiro') {
+            pixAlert.style.display = 'none';
+            popupOverlay.style.display = 'flex'; // abre o pop-up
+        } 
+        else {
+            pixAlert.style.display = 'none';
+            observation.value = '';
+        }
+    });
+
     confirmarValorBtn.addEventListener('click', function () {
         const valorPago = parseFloat(valorPagoInput.value);
         if (!isNaN(valorPago) && valorPago > totalPedido) {
@@ -1513,7 +1192,13 @@ btnCopiarPix.addEventListener('click', async () => {
 }
 
 /* Estilo para a lista de adicionais no item do carrinho */
-
+.cart-item-addons {
+    font-size: 13px;
+    color: #555;
+    margin-left: 20px;
+    margin-top: 5px;
+    line-height: 1.5;
+}
 </style>
 
 <div class="overlay" id="overlay"></div>
@@ -1558,32 +1243,13 @@ document.addEventListener('DOMContentLoaded', () => {
   const confirmAddonsBtn = document.getElementById('confirm-addons-btn');
 
   const availableAddons = [
-  // Carnes
-  { name: 'Carne', price: 5.00 },
-  { name: 'Frango', price: 5.00 },
-  { name: 'Filé', price: 7.00 },
-
-  // Complementos
-  { name: 'Calabresa', price: 2.00 },
-  { name: 'Queijo', price: 2.00 },
-  { name: 'Presunto', price: 2.00 },
-
-  // Vegetais
-  { name: 'Alface', price: 1.00 },
-  { name: 'Tomate', price: 1.00 },
-  { name: 'Cebola', price: 2.00 },
-
-  // Outros
-  { name: 'Banana', price: 3.00 },
-  { name: 'Cheddar', price: 2.00 },
-  { name: 'Catupiry', price: 2.00 },
-
-  // Molhos
-  { name: 'Mostarda', price: 1.00 },
-  { name: 'Barbecue', price: 1.00 },
-  { name: 'Maionese Temperada', price: 1.00 }
-];
-
+    { name: 'Carne', price: 5.00 },
+    { name: 'Frango', price: 5.00 },
+    { name: 'Filé', price: 7.00 },
+    { name: 'Calabresa', price: 2.00 },
+    { name: 'Queijo', price: 2.00 },
+    { name: 'Presunto', price: 2.00 }
+  ];
 
   const showToast = (message) => {
     const toast = document.getElementById('toast-notification');
@@ -1608,165 +1274,6 @@ document.addEventListener('DOMContentLoaded', () => {
   menuFloatBtn.addEventListener('click', () => {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   });
-// Função para gerar payload PIX
-function gerarPayloadPix(chavePix, valor, nomeRecebedor, cidadeRecebedor, txid = "VENDA001") {
-  function limpar(txt, max) {
-    return txt.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
-               .replace(/[^A-Za-z0-9 ]/g, "")
-               .toUpperCase()
-               .substring(0, max);
-  }
-  function campo(id, val) {
-    return id + String(val.length).padStart(2, '0') + val;
-  }
-
-  const nome = limpar(nomeRecebedor, 25);
-  const cidade = limpar(cidadeRecebedor, 15);
-  const tx = limpar(txid, 25);
-  const valorFmt = valor.toFixed(2);
-
-  const id00 = campo("00", "01");
-  const id01 = campo("01", "11"); // QR estático
-  const gui   = campo("00", "BR.GOV.BCB.PIX");
-  const chave = campo("01", chavePix);
-  const id26  = campo("26", gui + chave);
-  const id52 = campo("52", "0000");
-  const id53 = campo("53", "986");
-  const id54 = campo("54", valorFmt);
-  const id58 = campo("58", "BR");
-  const id59 = campo("59", nome);
-  const id60 = campo("60", cidade);
-  const ref  = campo("05", tx);
-  const id62 = campo("62", ref);
-
-  const semCRC = id00 + id01 + id26 + id52 + id53 + id54 + id58 + id59 + id60 + id62 + "6304";
-  const crc = calcularCRC16(semCRC);
-  return semCRC + crc;
-}
-
-function calcularCRC16(payload) {
-  let poly = 0x1021, crc = 0xFFFF;
-  for (let i = 0; i < payload.length; i++) {
-    crc ^= (payload.charCodeAt(i) << 8);
-    for (let j = 0; j < 8; j++) {
-      crc = (crc & 0x8000) ? ((crc << 1) ^ poly) : (crc << 1);
-      crc &= 0xFFFF;
-    }
-  }
-  return crc.toString(16).toUpperCase().padStart(4, '0');
-}
-
-const addonsFloatBtn = document.getElementById('addons-float-btn');
-const globalAddonsModal = document.getElementById('global-addons-modal');
-const closeGlobalAddons = document.querySelector('.close-global-addons');
-const confirmGlobalAddons = document.getElementById('confirm-global-addons');
-
-addonsFloatBtn.addEventListener('click', () => {
-  globalAddonsModal.classList.add('show');
-  overlay.classList.add('show');
-});
-
-closeGlobalAddons.addEventListener('click', () => {
-  globalAddonsModal.classList.remove('show');
-  overlay.classList.remove('show');
-});
-
-// Função utilitária para identificar bebidas
-const isDrink = (name) => {
-  const n = (name || '').toLowerCase();
-  return n.includes('refrigerante') || n.includes('suco');
-};
-
-confirmGlobalAddons.addEventListener('click', () => {
-  const inputs = globalAddonsModal.querySelectorAll('input[type="number"]');
-
-  // Encontrar o último item de comida (não bebida) no carrinho
-  let targetIndex = -1;
-  for (let i = cart.length - 1; i >= 0; i--) {
-    if (!isDrink(cart[i].name)) {
-      targetIndex = i;
-      break;
-    }
-  }
-
-  if (targetIndex === -1) {
-    showToast('⚠️ Adicione um lanche antes dos adicionais.');
-    return;
-  }
-
-  const targetItem = cart[targetIndex];
-  let addedSomething = false;
-
-  inputs.forEach(input => {
-    const qty = parseInt(input.value, 10);
-    if (qty > 0) {
-      const name = input.dataset.name;
-      const price = parseFloat(input.dataset.price);
-
-      // Se já existir o mesmo adicional, soma a quantidade
-      const existing = targetItem.addons.find(a => a.name === name);
-      if (existing) {
-        existing.quantity += qty;
-      } else {
-        targetItem.addons.push({ name, price, quantity: qty });
-      }
-
-      addedSomething = true;
-      showToast(`✅ ${qty}x ${name} adicionado!`);
-      input.value = 0;
-    }
-  });
-
-  if (addedSomething) updateCart();
-
-  globalAddonsModal.classList.remove('show');
-  overlay.classList.remove('show');
-});
-
-
-// Elementos do modal PIX
-const pixModal = document.getElementById('pix-modal');
-const pixClose = document.querySelector('.pix-close');
-const pixQrcodeDiv = document.getElementById('pix-qrcode');
-const pixCopiaCola = document.getElementById('pix-copia-cola');
-
-// Quando escolher PIX no formulário
-document.getElementById('payment').addEventListener('change', function () {
-  if (this.value === 'PIX') {
-    const totalPedido = getTotalPedido(); // função que já soma carrinho + taxa
-    const payload = gerarPayloadPix(
-      '01189164329', // sua chave PIX
-      totalPedido,
-      'Welton Jhones da Silva Souza',
-      'Nubank',
-      'VD' + Date.now()
-    );
-
-    // Gera QRCode
-    pixQrcodeDiv.innerHTML = '';
-    new QRCode(pixQrcodeDiv, { text: payload, width: 220, height: 220 });
-
-    // Copia e cola
-    pixCopiaCola.value = payload;
-
-    // Abre modal
-    pixModal.style.display = 'flex';
-  }
-});
-
-// Fechar modal
-pixClose.addEventListener('click', () => {
-  pixModal.style.display = 'none';
-});
-window.addEventListener('click', (e) => {
-  if (e.target === pixModal) pixModal.style.display = 'none';
-});
-
-// Função auxiliar para pegar total do carrinho
-function getTotalPedido() {
-  const totalText = document.getElementById('cart-total-price').textContent;
-  return parseFloat(totalText.replace('R$', '').replace(',', '.').trim());
-}
 
   document.querySelectorAll('.add-to-cart-btn').forEach(button => {
     button.addEventListener('click', (e) => {
@@ -1796,119 +1303,72 @@ function getTotalPedido() {
     }
     updateCart();
   };
-// Adicione esta função utilitária acima do confirmGlobalAddons:
 
   const updateCart = () => {
-  cartItemsContainer.innerHTML = '';
-  if (cart.length === 0) {
-    cartItemsContainer.innerHTML = '<p>Seu carrinho está vazio.</p>';
-    cartTotalPrice.textContent = 'R$ 0,00';
-    cartBadge.textContent = '0';
-    cartBadge.style.display = 'none';
-    return;
-  }
-
-  let total = 0;
-  let totalItems = 0;
-
-  cart.forEach((item, index) => {
-    const itemElement = document.createElement('div');
-    itemElement.classList.add('cart-item');
-
-    // Renderizar adicionais
-    let addonsHTML = '';
-    if (item.addons && item.addons.length > 0) {
-      addonsHTML += '<div class="cart-item-addons">';
-      item.addons.forEach(addon => {
-        addonsHTML += `<span>${addon.quantity}x ${addon.name}</span>`;
-        total += addon.price * addon.quantity;
-      });
-      addonsHTML += '</div>';
+    cartItemsContainer.innerHTML = '';
+    if (cart.length === 0) {
+      cartItemsContainer.innerHTML = '<p>Seu carrinho está vazio.</p>';
+      cartTotalPrice.textContent = 'R$ 0,00';
+      cartBadge.textContent = '0';
+      cartBadge.style.display = 'none';
+      return;
     }
 
-    total += item.price * item.quantity;
-    totalItems += item.quantity;
+    let total = 0;
+    let totalItems = 0;
 
-    itemElement.innerHTML = `
-      <div class="item-details">
-        <div class="cart-item-info">
-          <span>${item.quantity}x ${item.name}${item.brand ? ` (${item.brand})` : ''}</span>
-          <span>R$ ${(item.price * item.quantity).toFixed(2).replace('.', ',')}</span>
-        </div>
-        ${addonsHTML}
-      </div>
-      <div class="item-actions">
-        <button class="remove-item-btn" data-index="${index}">&times;</button>
-      </div>
-    `;
-    cartItemsContainer.appendChild(itemElement);
-  });
+    cart.forEach((item, index) => {
+      const itemElement = document.createElement('div');
+      itemElement.classList.add('cart-item');
 
-  total += deliveryFee;
-  cartTotalPrice.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
-  cartBadge.textContent = totalItems;
-  cartBadge.style.display = 'flex';
-
-  document.querySelectorAll('.remove-item-btn').forEach(button => {
-    button.addEventListener('click', (e) => {
-      removeFromCart(e.currentTarget.getAttribute('data-index'));
-    });
-  });
-};
-const batataAddonsModal = document.getElementById('batata-addons-modal');
-const closeBatataAddons = document.querySelector('.close-batata-addons');
-const confirmBatataAddons = document.getElementById('confirm-batata-addons');
-
-// Botão da batata
-document.querySelector('.add-batata-btn').addEventListener('click', () => {
-  // Primeiro adiciona a batata no carrinho
-  addToCart("Batata frita", 17.00, "");
-  // Abre o modal de adicionais
-  batataAddonsModal.classList.add('show');
-  overlay.classList.add('show');
-});
-
-// Fechar modal
-closeBatataAddons.addEventListener('click', () => {
-  batataAddonsModal.classList.remove('show');
-  overlay.classList.remove('show');
-});
-// Fechar modal ao clicar fora do conteúdo
-window.addEventListener('click', (e) => {
-  if (e.target === batataAddonsModal) {
-    batataAddonsModal.classList.remove('show');
-    overlay.classList.remove('show');
-  }
-});
-
-// Confirmar adicionais
-confirmBatataAddons.addEventListener('click', () => {
-  const inputs = batataAddonsModal.querySelectorAll('input[type="number"]');
-  const targetItem = cart.find(item => item.name === "Batata frita");
-
-  inputs.forEach(input => {
-    const qty = parseInt(input.value, 10);
-    if (qty > 0) {
-      const name = input.dataset.name;
-      const price = parseFloat(input.dataset.price);
-
-      // Se já existir, soma
-      const existing = targetItem.addons.find(a => a.name === name);
-      if (existing) {
-        existing.quantity += qty;
-      } else {
-        targetItem.addons.push({ name, price, quantity: qty });
+      let addonsHTML = '';
+      if (item.addons.length > 0) {
+        addonsHTML += '<div class="cart-item-addons">';
+        item.addons.forEach(addon => {
+          addonsHTML += `<span>+ ${addon.quantity}x ${addon.name}</span><br>`;
+          total += addon.price * addon.quantity;
+        });
+        addonsHTML += '</div>';
       }
 
-      showToast(`✅ ${qty}x ${name} adicionado!`);
-      input.value = 0;
-    }
-  });
+      total += item.price * item.quantity;
+      totalItems += item.quantity;
 
-  updateCart();
-  batataAddonsModal.classList.remove('show');
-  overlay.classList.remove('show');
-});
+      const addonsButtonHTML = (!item.name.includes('Refrigerante') && !item.name.includes('Suco'))
+        ? `<button class="add-addons-btn" data-index="${index}">+</button>` : '';
+
+      itemElement.innerHTML = `
+        <div class="item-details">
+          <div class="cart-item-info">
+            <span>${item.quantity}x ${item.name} (${item.brand})</span>
+            <span>R$ ${(item.price * item.quantity).toFixed(2).replace('.',',')}</span>
+          </div>
+          ${addonsHTML}
+        </div>
+        <div class="item-actions">
+          ${addonsButtonHTML} <button class="remove-item-btn" data-index="${index}">&times;</button>
+        </div>
+      `;
+      cartItemsContainer.appendChild(itemElement);
+    });
+
+    total += deliveryFee;
+    cartTotalPrice.textContent = `R$ ${total.toFixed(2).replace('.', ',')}`;
+    cartBadge.textContent = totalItems;
+    cartBadge.style.display = 'flex';
+
+    document.querySelectorAll('.remove-item-btn').forEach(button => {
+      button.addEventListener('click', (e) => {
+        removeFromCart(e.currentTarget.getAttribute('data-index'));
+      });
+    });
+
+    document.querySelectorAll('.add-addons-btn').forEach(button => {
+      button.addEventListener('click', (e) => {
+        openAddonsModal(e.currentTarget.getAttribute('data-index'));
+      });
+    });
+  };
 
   const openAddonsModal = (itemIndex) => {
     addonsListContainer.innerHTML = '';
@@ -1973,80 +1433,77 @@ confirmBatataAddons.addEventListener('click', () => {
 
   document.getElementById('localidade').addEventListener('change', updateDeliveryFee);
 
-checkoutForm.addEventListener('submit', async (e) => {
-  e.preventDefault();
-  if (cart.length === 0) {
-    alert('Seu carrinho está vazio!');
-    return;
-  }
-
-  const customerName = document.getElementById('name').value;
-  const address = document.getElementById('address').value;
-  const localidade = document.getElementById('localidade').value;
-  const phone = document.getElementById('phone').value;
-  const paymentMethod = document.getElementById('payment').value;
-  const observation = document.getElementById('observation').value;
-
-  let orderMessage = `*MEU PEDIDO:*\n\n`;
-  orderMessage += `*Cliente:* ${customerName}\n`;
-  orderMessage += `*Telefone:* ${phone}\n`;
-  orderMessage += `*Endereço:* ${address}, ${localidade}\n`;
-  orderMessage += `*Pagamento:* ${paymentMethod}\n\n`;
-  orderMessage += `*-- ITENS DO PEDIDO: --*\n`;
-
-  cart.forEach(item => {
-    let brandText = item.brand ? ` (${item.brand})` : '';
-    orderMessage += `• ${item.quantity}x ${item.name}${brandText}\n`;
-
-    // 🔥 Aqui entram os adicionais
-    if (item.addons && item.addons.length > 0) {
-      item.addons.forEach(addon => {
-        orderMessage += `    ↳ com ${addon.quantity}x ${addon.name}\n`;
-      });
+  checkoutForm.addEventListener('submit', async (e) => {
+    e.preventDefault();
+    if (cart.length === 0) {
+      alert('Seu carrinho está vazio!');
+      return;
     }
 
-    orderMessage += `\n`;
-  });
+    const customerName = document.getElementById('name').value;
+    const address = document.getElementById('address').value;
+    const localidade = document.getElementById('localidade').value;
+    const phone = document.getElementById('phone').value;
+    const paymentMethod = document.getElementById('payment').value;
+    const observation = document.getElementById('observation').value;
 
-  orderMessage += `*Taxa de Entrega:* R$ ${deliveryFee.toFixed(2).replace('.', ',')}\n`;
-  orderMessage += `*TOTAL:* ${cartTotalPrice.textContent}\n\n`;
+    let orderMessage = `*MEU PEDIDO:*\n\n`;
+    orderMessage += `*Cliente:* ${customerName}\n`;
+    orderMessage += `*Telefone:* ${phone}\n`;
+    orderMessage += `*Endereço:* ${address}, ${localidade}\n`;
+    orderMessage += `*Pagamento:* ${paymentMethod}\n\n`;
+    orderMessage += `*-- ITENS DO PEDIDO: --*\n`;
 
-  if (observation) {
-    orderMessage += `*Obs:* ${observation}\n\n`;
-  }
-  orderMessage += `*Jhonny-Bagdá Agradece!*`;
-
-  const whatsappNumber = '5599992261907';
-  const whatsappURL = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(orderMessage)}`;
-
-  // 🔥 Salvar no Firebase
-  try {
-    await addDoc(collection(db, "pedidos"), {
-      cliente: customerName,
-      telefone: phone,
-      endereco: `${address}, ${localidade}`,
-      pagamento: paymentMethod,
-      observacao: observation,
-      itens: cart,
-      taxaEntrega: deliveryFee,
-      total: cartTotalPrice.textContent,
-      timestamp: new Date()
+    cart.forEach(item => {
+      let brandText = item.brand ? ` (${item.brand})` : '';
+      orderMessage += `• ${item.quantity}x ${item.name}${brandText}\n`;
+      if (item.addons && item.addons.length > 0) {
+        item.addons.forEach(addon => {
+          orderMessage += `    ↳ com ${addon.quantity}x ${addon.name}\n`;
+        });
+      }
+      orderMessage += `\n`;
     });
-    console.log("✅ Pedido salvo no Firebase!");
-  } catch (error) {
-    console.error("❌ Erro ao salvar pedido:", error);
-    alert("Erro ao registrar pedido. Tente novamente.");
-    return;
-  }
 
-  // Abrir WhatsApp
-  window.open(whatsappURL, '_blank');
-  location.reload();
-});
+    orderMessage += `*Taxa de Entrega:* R$ ${deliveryFee.toFixed(2).replace('.', ',')}\n`;
+    orderMessage += `*TOTAL:* ${cartTotalPrice.textContent}\n\n`;
 
+    if (observation) {
+      orderMessage += `*Obs:* ${observation}\n\n`;
+    }
+    orderMessage += `*Jhonny-Bagdá Agradece!*`;
+
+    const whatsappNumber = '5599992261907';
+    const whatsappURL = `https://wa.me/${whatsappNumber}?text=${encodeURIComponent(orderMessage)}`;
+
+    // 🔥 Salvar no Firebase
+    try {
+      await addDoc(collection(db, "pedidos"), {
+        cliente: customerName,
+        telefone: phone,
+        endereco: `${address}, ${localidade}`,
+        pagamento: paymentMethod,
+        observacao: observation,
+        itens: cart,
+        taxaEntrega: deliveryFee,
+        total: cartTotalPrice.textContent,
+        timestamp: new Date()
+      });
+      console.log("✅ Pedido salvo no Firebase!");
+    } catch (error) {
+      console.error("❌ Erro ao salvar pedido:", error);
+      alert("Erro ao registrar pedido. Tente novamente.");
+      return;
+    }
+
+    // Abrir WhatsApp
+    window.open(whatsappURL, '_blank');
+    location.reload();
+  });
 
   updateCart();
 });
+
 
 
 // Bloqueios de segurança (mantidos como no original)
@@ -2059,8 +1516,6 @@ document.addEventListener('keydown', function (event) {
 });
 document.addEventListener('contextmenu', function (event) { event.preventDefault(); });
 </script>
-
-<!-- footer -->
 <footer class="site-footer">
   <div class="footer-container">
 
