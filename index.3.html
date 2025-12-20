@@ -71,7 +71,6 @@
     <div id="contador">Total de pedidos ativos: 0 | Valor: R$ 0,00</div>
 
     <div class="bar">
-     <a href="index.html"> <button class="btn">Voltar para Pedidos</button></a>
       <button id="apagarTudo" class="btn">🗑️ Apagar tudo</button>
       <button id="toggleSom" class="btn">🔕 Som OFF</button>
     </div>
@@ -79,330 +78,415 @@
 
   <section class="mesas" id="mesas"></section>
 
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import {
-      getFirestore, collection, onSnapshot, deleteDoc, doc,
-      getDocs, query, where
-    } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
+<script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+  import {
+    getFirestore, collection, onSnapshot, deleteDoc, doc,
+    getDocs, query, where
+  } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-firestore.js";
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyDUhKpLopIApQaiEoGaxBXjZzmkROvdaJI",
-      authDomain: "app-de-demandas.firebaseapp.com",
-      projectId: "app-de-demandas",
-      storageBucket: "app-de-demandas.appspot.com",
-      messagingSenderId: "857555550806",
-      appId: "1:857555550806:web:e7cb602c680585f6c171f7",
-      measurementId: "G-MZP03Y2R4J"
-    };
+  // Firebase
+  const firebaseConfig = {
+    apiKey: "AIzaSyDUhKpLopIApQaiEoGaxBXjZzmkROvdaJI",
+    authDomain: "app-de-demandas.firebaseapp.com",
+    projectId: "app-de-demandas",
+    storageBucket: "app-de-demandas.appspot.com",
+    messagingSenderId: "857555550806",
+    appId: "1:857555550806:web:e7cb602c680585f6c171f7",
+    measurementId: "G-MZP03Y2R4J"
+  };
+  const app = initializeApp(firebaseConfig);
+  const db = getFirestore(app);
 
-    const app = initializeApp(firebaseConfig);
-    const db = getFirestore(app);
+  // Elementos
+  const mesasEl = document.getElementById('mesas');
+  const toggleSomBtn = document.getElementById('toggleSom');
+  const apagarTudoBtn = document.getElementById('apagarTudo');
+  const contadorEl = document.getElementById('contador');
 
-    const mesasEl = document.getElementById('mesas');
-    const toggleSomBtn = document.getElementById('toggleSom');
-    const apagarTudoBtn = document.getElementById('apagarTudo');
-    const contadorEl = document.getElementById('contador');
+  // Estado
+  let somAtivo = false;
+  let pedidosAntigos = [];
+  let mapaPrecos = {};
+  let contadorPedidos = 0;
+  let contadorValor = 0;
 
-    let somAtivo = false;
-    let pedidosAntigos = [];
-    let mapaPrecos = {};
-    let contadorPedidos = 0;
-    let contadorValor = 0;
-
-    function tocarSomPersonalizado(){
-      const ctx = new (window.AudioContext || window.webkitAudioContext)();
-      function beep(duracao){
-        const osc = ctx.createOscillator();
-        const gain = ctx.createGain();
-        osc.type = "sine";
-        osc.frequency.value = 600;
-        gain.gain.value = 0.2;
-        osc.connect(gain);
-        gain.connect(ctx.destination);
-        osc.start();
-        osc.stop(ctx.currentTime + duracao);
-      }
-      beep(0.4);
-      setTimeout(()=>beep(0.4), 600);
-      const audio = new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/audio_7a6f2f6f3a.mp3?filename=kitchen-bell-14612.mp3");
-      audio.play();
+  // Som personalizado
+  function tocarSomPersonalizado(){
+    const ctx = new (window.AudioContext || window.webkitAudioContext)();
+    function beep(duracao){
+      const osc = ctx.createOscillator();
+      const gain = ctx.createGain();
+      osc.type = "sine";
+      osc.frequency.value = 600;
+      gain.gain.value = 0.2;
+      osc.connect(gain);
+      gain.connect(ctx.destination);
+      osc.start();
+      osc.stop(ctx.currentTime + duracao);
     }
+    beep(0.4);
+    setTimeout(()=>beep(0.4), 600);
+    const audio = new Audio("https://cdn.pixabay.com/download/audio/2022/03/15/audio_7a6f2f6f3a.mp3?filename=kitchen-bell-14612.mp3");
+    audio.play();
+  }
 
-    toggleSomBtn.onclick = ()=>{
-      somAtivo = !somAtivo;
-      if(somAtivo){
-        toggleSomBtn.textContent = "🔔 Som ON";
-        toggleSomBtn.classList.add("ativo");
-        Swal.fire({ icon:'success', title:'Som ativado' });
-      } else {
-        toggleSomBtn.textContent = "🔕 Som OFF";
-        toggleSomBtn.classList.remove("ativo");
-        Swal.fire({ icon:'info', title:'Som desativado' });
-      }
-    };
+  // Toggle som
+  toggleSomBtn.onclick = ()=>{
+    somAtivo = !somAtivo;
+    toggleSomBtn.textContent = somAtivo ? "🔔 Som ON" : "🔕 Som OFF";
+    toggleSomBtn.classList.toggle("ativo", somAtivo);
+    Swal.fire({ icon: somAtivo ? 'success':'info', title: somAtivo ? 'Som ativado':'Som desativado' });
+  };
 
-    onSnapshot(collection(db, "pedidos"), (snapshot)=>{
-      const pedidosPorMesa = {};
-      const pedidosIdsAtual = [];
-      const precosAtuais = {};
+  // Snapshot em tempo real
+  onSnapshot(collection(db, "pedidos"), (snapshot)=>{
+    const pedidosPorMesa = {};
+    const pedidosIdsAtual = [];
+    const precosAtuais = {};
 
-      snapshot.forEach(d=>{
-        const data = d.data();
-        const mesa = data.mesa || "Sem mesa";
-        if(!pedidosPorMesa[mesa]) pedidosPorMesa[mesa] = [];
-        const preco = Number(data.preco) || 0;
-        pedidosPorMesa[mesa].push({ ...data, id: d.id, preco });
-        pedidosIdsAtual.push(d.id);
-        precosAtuais[d.id] = preco;
-      });
-
-      const novos = pedidosIdsAtual.filter(id => !pedidosAntigos.includes(id));
-      if(novos.length > 0){
-        novos.forEach(id=>{
-          contadorPedidos += 1;
-          const val = precosAtuais[id] ?? 0;
-          contadorValor += val;
-          mapaPrecos[id] = val;
-        });
-        if(somAtivo){ tocarSomPersonalizado(); }
-      }
-
-      contadorEl.textContent =
-        "Total de pedidos ativos: " + contadorPedidos +
-        " | Valor: R$ " + contadorValor.toFixed(2);
-
-      pedidosAntigos = pedidosIdsAtual;
-
-      renderMesas(pedidosPorMesa);
+    snapshot.forEach(d=>{
+      const data = d.data();
+      const mesa = data.mesa || "Sem mesa";
+      if(!pedidosPorMesa[mesa]) pedidosPorMesa[mesa] = [];
+      const preco = Number(data.preco) || 0;
+      pedidosPorMesa[mesa].push({ ...data, id: d.id, preco });
+      pedidosIdsAtual.push(d.id);
+      precosAtuais[d.id] = preco;
     });
 
-    function renderMesas(pedidosPorMesa){
-      mesasEl.innerHTML = "";
-      const mesas = Object.keys(pedidosPorMesa).sort((a,b)=> {
-        const na = parseInt(a,10), nb = parseInt(b,10);
-        if(isNaN(na) || isNaN(nb)) return a.localeCompare(b);
-        return na - nb;
+    const novos = pedidosIdsAtual.filter(id => !pedidosAntigos.includes(id));
+    if(novos.length > 0){
+      novos.forEach(id=>{
+        contadorPedidos += 1;
+        const val = precosAtuais[id] ?? 0;
+        contadorValor += val;
+        mapaPrecos[id] = val;
       });
-
-      mesas.forEach(mesa=>{
-        const pedidos = pedidosPorMesa[mesa];
-
-        const grupos = {};
-        pedidos.forEach(p => {
-          const gid = p.grupoId || p.id;
-          if (!grupos[gid]) grupos[gid] = { principal: null, adicionais: [] };
-
-          if (p.categoria === "Adicional") {
-            grupos[gid].adicionais.push(p);
-          } else {
-            grupos[gid].principal = p;
-          }
-        });
-
-        const lanches = [];
-        const bebidas = [];
-        const porcoes = [];
-
-        Object.values(grupos).forEach(g => {
-          if (!g.principal) return;
-
-          if (g.principal.categoria === "Lanches") lanches.push(g);
-          else if (g.principal.categoria === "Bebidas") bebidas.push(g);
-          else porcoes.push(g);
-        });
-
-        let totalMesa = 0;
-
-        const div = document.createElement('div');
-        div.className = 'mesa';
-        div.id = "mesa-"+mesa;
-
-        const title = document.createElement('h2');
-        title.textContent = "Mesa " + mesa;
-        div.appendChild(title);
-
-        function renderGrupo(titulo, lista){
-          if(lista.length === 0) return;
-
-          const h = document.createElement('div');
-          h.className = "categoriaTitulo";
-          h.textContent = titulo;
-          div.appendChild(h);
-
-          lista.forEach(grupo => {
-            const principal = grupo.principal;
-            let subtotal = Number(principal.preco);
-
-            const row = document.createElement('div');
-            row.className = 'pedido';
-
-            const nome = principal.marca
-              ? `${principal.nome} - ${principal.marca}`
-              : principal.nome;
-
-            row.innerHTML = `<span><b>${nome}</b></span><span>R$ ${principal.preco.toFixed(2)}</span>`;
-            div.appendChild(row);
-
-            grupo.adicionais.forEach(add => {
-              subtotal += Number(add.preco);
-              const addRow = document.createElement('div');
-              addRow.className = 'pedido';
-              addRow.style.paddingLeft = "20px";
-              addRow.innerHTML = `<span>+ ${add.nome}</span><span>R$ ${add.preco.toFixed(2)}</span>`;
-              div.appendChild(addRow);
-            });
-
-            totalMesa += subtotal;
-          });
-        }
-
-        renderGrupo("🍔 Lanches", lanches);
-        renderGrupo("🥤 Bebidas", bebidas);
-        renderGrupo("🍟 Porções", porcoes);
-
-        const totalEl = document.createElement('div');
-        totalEl.className = 'total';
-        totalEl.textContent = "Total: R$ " + totalMesa.toFixed(2);
-        div.appendChild(totalEl);
-
-        const actions = document.createElement('div');
-        actions.className = 'actions';
-        actions.innerHTML = `
-          <button class="btn btn-kitchen" onclick="imprimirCozinha('${mesa}')">🍳 Imprimir Cozinha</button>
-          <button class="btn btn-print" onclick="imprimirMesa('${mesa}')">🖨️ Imprimir</button>
-          <button class="btn btn-clear" onclick="apagarMesa('${mesa}')">🗑️ Apagar mesa</button>
-        `;
-        div.appendChild(actions);
-
-        mesasEl.appendChild(div);
-      });
+      if(somAtivo){ tocarSomPersonalizado(); }
     }
 
-    apagarTudoBtn.onclick = async ()=>{
-      const r = await Swal.fire({
-        icon:'warning', title:'Apagar todos os pedidos?',
-        showCancelButton:true, confirmButtonText:'Sim'
-      });
-      if(!r.isConfirmed) return;
+    contadorEl.textContent =
+      "Total de pedidos ativos: " + contadorPedidos +
+      " | Valor: R$ " + contadorValor.toFixed(2).replace('.',',');
 
-      const snap = await getDocs(collection(db,"pedidos"));
-      const deletions = [];
-      snap.forEach(d=> deletions.push(deleteDoc(doc(db,"pedidos",d.id))));
-      await Promise.all(deletions);
+    pedidosAntigos = pedidosIdsAtual;
 
-      pedidosAntigos = [];
-      mapaPrecos = {};
-      contadorPedidos = 0;
-      contadorValor = 0;
-      contadorEl.textContent = "Total de pedidos ativos: 0 | Valor: R$ 0,00";
+    renderMesas(pedidosPorMesa);
+  });
 
-      Swal.fire({ icon:'success', title:'Todos apagados', timer:1500, showConfirmButton:false });
-    };
+  // Render mesas (com observação)
+  function renderMesas(pedidosPorMesa){
+    mesasEl.innerHTML = "";
+    const mesas = Object.keys(pedidosPorMesa).sort((a,b)=> {
+      const na = parseInt(a,10), nb = parseInt(b,10);
+      if(isNaN(na) || isNaN(nb)) return a.localeCompare(b);
+      return na - nb;
+    });
 
-    window.apagarMesa = async (mesa)=>{
-      const r = await Swal.fire({
-        icon:'warning', title:`Apagar mesa ${mesa}?`,
-        showCancelButton:true, confirmButtonText:'Sim'
-      });
-      if(!r.isConfirmed) return;
-
-      const q = query(collection(db,"pedidos"), where("mesa","==",mesa));
-      const snap = await getDocs(q);
-      const deletions = [];
-      snap.forEach(d=> {
-        deletions.push(deleteDoc(doc(db,"pedidos",d.id)));
-        delete mapaPrecos[d.id];
-      });
-      await Promise.all(deletions);
-
-      Swal.fire({ icon:'success', title:`Mesa ${mesa} apagada`, timer:1500, showConfirmButton:false });
-    };
-
-    window.imprimirMesa = (mesa)=>{
-      const div = document.getElementById("mesa-"+mesa);
-      if(!div) return;
-
-      const conteudo = div.cloneNode(true);
-      const actions = conteudo.querySelector('.actions');
-      if(actions) actions.remove();
-
-      const footer = document.createElement('div');
-      footer.className = 'footer';
-      footer.innerHTML = `
-        <div style="margin-top:20px;font-size:0.95rem;text-align:center;">
-          <p><strong>Jhonny Bagdá - Lanchonete</strong><br>
-          Endereço: Rua da Draga (em frente ao estádio municipal), Itinga - MA<br>
-          Tel: (99) 99226-1907<br>
-          Horário: Seg–Qui 18h–00h | Sex–Dom 18h30–01h</p>
-          <p style="margin-top:8px;">Acesse nosso cardápio online:</p>
-          <img id="qrcode-img" alt="QR Code" style="margin-top:6px;width:120px;height:120px;">
-        </div>
-      `;
-      conteudo.appendChild(footer);
-
-      const printWindow = window.open('', '', 'width=420,height=700');
-      const siteUrl = "https://meusiteaki.github.io/JhonnyBagda/";
-      const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=120x120&data=${encodeURIComponent(siteUrl)}`;
-
-      printWindow.document.write('<html><head><title>Imprimir Mesa '+mesa+'</title>');
-      printWindow.document.write('<style>@page{size:80mm auto;margin:5mm;} body{font-family:Arial;}</style>');
-      printWindow.document.write('</head><body>');
-      printWindow.document.write(conteudo.innerHTML);
-      printWindow.document.write('</body></html>');
-      printWindow.document.close();
-
-      printWindow.onload = ()=>{
-        const img = printWindow.document.getElementById('qrcode-img');
-        img.src = qrUrl;
-        img.onload = ()=>{
-          printWindow.focus();
-          printWindow.print();
-          setTimeout(()=>printWindow.close(), 500);
-        };
-      };
-    };
-
-    window.imprimirCozinha = (mesa)=>{
-      const div = document.getElementById("mesa-"+mesa);
-      if(!div) return;
-
-      const linhas = Array.from(div.querySelectorAll('.pedido'));
-      const itens = linhas.map(l => l.querySelector('span')?.textContent || "").filter(Boolean);
+    mesas.forEach(mesa=>{
+      const pedidos = pedidosPorMesa[mesa];
 
       const grupos = {};
-      itens.forEach(nome=>{
-        grupos[nome] = (grupos[nome] || 0) + 1;
+      pedidos.forEach(p => {
+        const gid = p.grupoId || p.id;
+        if (!grupos[gid]) grupos[gid] = { principal: null, adicionais: [] };
+
+        if (p.categoria === "Adicional") {
+          grupos[gid].adicionais.push(p);
+        } else {
+          grupos[gid].principal = p;
+        }
       });
 
-      const printWindow = window.open('', '', 'width=420,height=700');
-      printWindow.document.write('<html><head><title>Cozinha - Mesa '+mesa+'</title>');
-      printWindow.document.write(`
-        <style>
-          @page{size:80mm auto;margin:5mm;}
-          body{font-family:Arial;}
-          h2{margin:0 0 10px;}
-          .linha{display:flex; justify-content:space-between; padding:6px 0; border-bottom:1px dashed #999;}
-        </style>
-      `);
-      printWindow.document.write('</head><body>');
-      printWindow.document.write('<h2>🍳 Cozinha - Mesa '+mesa+'</h2>');
+      const lanches = [];
+      const bebidas = [];
+      const porcoes = [];
 
-      Object.keys(grupos).forEach(nome=>{
-        const qtd = grupos[nome];
-        printWindow.document.write(`<div class="linha"><span>${nome}</span><span>x${qtd}</span></div>`);
+      Object.values(grupos).forEach(g => {
+        if (!g.principal) return;
+        if (g.principal.categoria === "Lanches") lanches.push(g);
+        else if (g.principal.categoria === "Bebidas") bebidas.push(g);
+        else porcoes.push(g);
       });
 
-      printWindow.document.write('</body></html>');
-      printWindow.document.close();
+      let totalMesa = 0;
+      const div = document.createElement('div');
+      div.className = 'mesa';
+      div.id = "mesa-"+mesa;
 
-      printWindow.onload = ()=>{
+      const title = document.createElement('h2');
+      title.textContent = "Mesa " + mesa;
+      div.appendChild(title);
+
+      function renderGrupo(titulo, lista){
+        if(lista.length === 0) return;
+        const h = document.createElement('div');
+        h.className = "categoriaTitulo";
+        h.textContent = titulo;
+        div.appendChild(h);
+
+        lista.forEach(grupo => {
+          const principal = grupo.principal;
+          let subtotal = Number(principal.preco);
+
+          const row = document.createElement('div');
+          row.className = 'pedido';
+
+          const nome = principal.marca
+            ? `${principal.nome} - ${principal.marca}`
+            : principal.nome;
+
+          const obsHtml = principal.observacao
+            ? `<div class="obs-panel" style="margin-top:4px;font-size:0.85rem;color:#555;">
+                 <em>Obs:</em> ${principal.observacao}
+               </div>`
+            : '';
+
+          row.innerHTML = `
+            <div style="flex:1;display:flex;flex-direction:column;">
+              <span><b>${nome}</b></span>
+              ${obsHtml}
+            </div>
+            <span>R$ ${Number(principal.preco).toFixed(2).replace('.',',')}</span>
+          `;
+          div.appendChild(row);
+
+          grupo.adicionais.forEach(add => {
+            subtotal += Number(add.preco);
+            const addRow = document.createElement('div');
+            addRow.className = 'pedido';
+            addRow.style.paddingLeft = "20px";
+            addRow.innerHTML = `<span>+ ${add.nome}</span>`;
+            div.appendChild(addRow);
+          });
+
+          totalMesa += subtotal;
+        });
+      }
+
+      renderGrupo("🍔 Lanches", lanches);
+      renderGrupo("🥤 Bebidas", bebidas);
+      renderGrupo("🍟 Porções", porcoes);
+
+      const totalEl = document.createElement('div');
+      totalEl.className = 'total';
+      totalEl.textContent = "Total: R$ " + totalMesa.toFixed(2).replace('.',',');
+      div.appendChild(totalEl);
+
+      // Guarda o total numérico com ponto para PIX/print
+      div.dataset.total = totalMesa.toFixed(2);
+
+      const actions = document.createElement('div');
+      actions.className = 'actions';
+      actions.innerHTML = `
+        <button class="btn btn-kitchen" onclick="imprimirCozinha('${mesa}')">🍳 Imprimir Cozinha</button>
+        <button class="btn btn-print" onclick="imprimirMesa('${mesa}')">🖨️ Imprimir</button>
+        <button class="btn btn-clear" onclick="apagarMesa('${mesa}')">🗑️ Apagar mesa</button>
+      `;
+      div.appendChild(actions);
+
+      mesasEl.appendChild(div);
+    });
+  }
+
+  // Apagar tudo
+  apagarTudoBtn.onclick = async ()=>{
+    const r = await Swal.fire({
+      icon:'warning', title:'Apagar todos os pedidos?',
+      showCancelButton:true, confirmButtonText:'Sim'
+    });
+    if(!r.isConfirmed) return;
+
+    const snap = await getDocs(collection(db,"pedidos"));
+    const deletions = [];
+    snap.forEach(d=> deletions.push(deleteDoc(doc(db,"pedidos",d.id))));
+    await Promise.all(deletions);
+
+    pedidosAntigos = [];
+    mapaPrecos = {};
+    contadorPedidos = 0;
+    contadorValor = 0;
+    contadorEl.textContent = "Total de pedidos ativos: 0 | Valor: R$ 0,00";
+
+    Swal.fire({ icon:'success', title:'Todos apagados', timer:1500, showConfirmButton:false });
+  };
+
+  // Apagar mesa
+  window.apagarMesa = async (mesa)=>{
+    const r = await Swal.fire({
+      icon:'warning', title:`Apagar mesa ${mesa}?`,
+      showCancelButton:true, confirmButtonText:'Sim'
+    });
+    if(!r.isConfirmed) return;
+
+    const q = query(collection(db,"pedidos"), where("mesa","==",mesa));
+    const snap = await getDocs(q);
+    const deletions = [];
+    snap.forEach(d=> {
+      deletions.push(deleteDoc(doc(db,"pedidos",d.id)));
+      delete mapaPrecos[d.id];
+    });
+    await Promise.all(deletions);
+
+    Swal.fire({ icon:'success', title:`Mesa ${mesa} apagada`, timer:1500, showConfirmButton:false });
+  };
+
+  // ===== Funções PIX (EMV-Co) compatíveis com apps bancários =====
+  function calcularCRC16(payload) {
+    let poly = 0x1021, crc = 0xFFFF;
+    for (let i = 0; i < payload.length; i++) {
+      crc ^= (payload.charCodeAt(i) << 8);
+      for (let j = 0; j < 8; j++) {
+        crc = (crc & 0x8000) ? ((crc << 1) ^ poly) : (crc << 1);
+        crc &= 0xFFFF;
+      }
+    }
+    return crc.toString(16).toUpperCase().padStart(4, '0');
+  }
+
+  function gerarPayloadPix(chavePix, valor, nomeRecebedor, cidadeRecebedor, txid = "VENDA001") {
+    function limpar(txt, max) {
+      return txt.normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+                 .replace(/[^A-Za-z0-9 ]/g, "")
+                 .toUpperCase()
+                 .substring(0, max);
+    }
+    function campo(id, val) {
+      return id + String(val.length).padStart(2, '0') + val;
+    }
+
+    const nome = limpar(nomeRecebedor, 25);
+    const cidade = limpar(cidadeRecebedor, 15);
+    const tx = limpar(txid, 25);
+    const valorFmt = Number(valor).toFixed(2); // ponto decimal
+
+    const id00 = campo("00", "01");
+    const id01 = campo("01", "11"); // QR estático
+    const gui   = campo("00", "BR.GOV.BCB.PIX");
+    const chave = campo("01", chavePix);
+    const id26  = campo("26", gui + chave);
+    const id52 = campo("52", "0000");
+    const id53 = campo("53", "986");
+    const id54 = campo("54", valorFmt);
+    const id58 = campo("58", "BR");
+    const id59 = campo("59", nome);
+    const id60 = campo("60", cidade);
+    const ref  = campo("05", tx);
+    const id62 = campo("62", ref);
+
+    const semCRC = id00 + id01 + id26 + id52 + id53 + id54 + id58 + id59 + id60 + id62 + "6304";
+    const crc = calcularCRC16(semCRC);
+    return semCRC + crc;
+  }
+
+  // Imprimir mesa com QR PIX e observações — usa data-total (numérico) para evitar erros
+  window.imprimirMesa = (mesa)=>{
+    const div = document.getElementById("mesa-"+mesa);
+    if(!div) return;
+
+    const conteudo = div.cloneNode(true);
+    const actions = conteudo.querySelector('.actions');
+    if(actions) actions.remove();
+
+    // Total numérico (ponto) salvo em data-total
+    const valor = parseFloat(div.dataset.total || '0') || 0;
+
+    // Payload PIX válido
+    const payload = gerarPayloadPix(
+      "01189164329", // chave (CPF)
+      valor,
+      "Welton Jhones da Silva Souza",
+      "ITINGA MA",
+      `MESA${mesa}-${Date.now()}`
+    );
+
+    const qrUrl = `https://api.qrserver.com/v1/create-qr-code/?size=160x160&data=${encodeURIComponent(payload)}`;
+
+    // Rodapé com PIX
+    const footer = document.createElement('div');
+    footer.className = 'footer';
+    footer.innerHTML = `
+      <div style="margin-top:20px;font-size:0.95rem;text-align:center;">
+        <p><strong>Pagamento via PIX</strong><br>
+        Chave (CPF): 01189164329<br>
+        Nome: Welton Jhones da Silva Souza<br>
+        Banco: NuBank</p>
+        <p style="margin-top:8px;">Valor: R$ ${valor.toFixed(2).replace('.',',')}</p>
+        <img id="qrcode-pix" alt="QR Code PIX" style="margin-top:6px;width:160px;height:160px;">
+      </div>
+    `;
+    conteudo.appendChild(footer);
+
+    // Janela de impressão
+    const printWindow = window.open('', '', 'width=420,height=700');
+    printWindow.document.write('<html><head><title>Imprimir Mesa '+mesa+'</title>');
+    printWindow.document.write('<style>@page{size:80mm auto;margin:5mm;} body{font-family:Arial;} .pedido em{font-style:normal;}</style>');
+    printWindow.document.write('</head><body>');
+    printWindow.document.write(conteudo.innerHTML);
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+
+    printWindow.onload = ()=>{
+      const img = printWindow.document.getElementById('qrcode-pix');
+      img.src = qrUrl;
+      img.onload = ()=>{
         printWindow.focus();
         printWindow.print();
-        setTimeout(()=>printWindow.close(), 400);
+        setTimeout(()=>printWindow.close(), 500);
       };
     };
-  </script>
+  };
+
+  // Imprimir cozinha (mostrar observação logo abaixo do lanche; sem valores)
+  window.imprimirCozinha = (mesa)=>{
+    const div = document.getElementById("mesa-"+mesa);
+    if(!div) return;
+
+    // Coleta apenas itens principais (lanche/bebida/porção) e suas observações
+    const grupos = [];
+    const pedidosPrincipais = div.querySelectorAll('.pedido');
+    pedidosPrincipais.forEach(p => {
+      const nomeEl = p.querySelector('b');
+      if (nomeEl) {
+        const nome = nomeEl.textContent.trim();
+        const obsEl = p.querySelector('em');
+        const obs = obsEl ? obsEl.parentElement.textContent.replace("Obs:","").trim() : null;
+        // Ignora linhas de adicionais (que começam com "+ ")
+        if (!nome.startsWith('+')) grupos.push({ nome, obs });
+      }
+    });
+
+    const printWindow = window.open('', '', 'width=420,height=700');
+    printWindow.document.write('<html><head><title>Cozinha - Mesa '+mesa+'</title>');
+    printWindow.document.write(`
+      <style>
+        @page{size:80mm auto;margin:5mm;}
+        body{font-family:Arial;}
+        h2{margin:0 0 10px;}
+        .linha{padding:6px 0; border-bottom:1px dashed #999;}
+        .obs{padding-left:10px; font-size:0.9rem; color:#222;}
+      </style>
+    `);
+    printWindow.document.write('</head><body>');
+    printWindow.document.write('<h2>🍳 Cozinha - Mesa '+mesa+'</h2>');
+
+    grupos.forEach(g=>{
+      printWindow.document.write(`<div class="linha">${g.nome}</div>`);
+      if (g.obs) {
+        printWindow.document.write(`<div class="obs">Obs: ${g.obs}</div>`);
+      }
+    });
+
+    printWindow.document.write('</body></html>');
+    printWindow.document.close();
+
+    printWindow.onload = ()=>{
+      printWindow.focus();
+      printWindow.print();
+      setTimeout(()=>printWindow.close(), 400);
+    };
+  };
+</script>
 </body>
 </html>
-
