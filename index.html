@@ -3,103 +3,165 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1" />
-  <title>Painel de Pedidos</title>
+  <title>JHONNYBAGDÁ | Sistema Integrado</title>
+  <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
   <style>
-    @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;600&display=swap');
+    @import url('https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700&display=swap');
 
     :root {
-      --bg: #eef2f7;
-      --card: #ffffff;
-      --text: #2c3e50;
-      --muted: #7f8c8d;
-      --accent: #3498db;
-      --ok: #27ae60;
-      --warn: #f39c12;
-      --danger: #e74c3c;
-      --border: #e1e8ed;
+      --bg-black: #0a0a0a;
+      --card-gray: #161616;
+      --accent: #ffb800;
+      --text-white: #f0f0f0;
+      --text-dim: #a0a0a0;
+      --danger: #ff4d4d;
+      --success: #00e676;
+      --border: #262626;
     }
 
-    * { box-sizing: border-box; }
-    body {
-      margin: 0;
-      font-family: 'Inter', sans-serif;
-      background: linear-gradient(135deg, #eef2f7, #dfe6ee);
-      color: var(--text);
-      padding: 24px;
-      line-height: 1.5;
-    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: 'Outfit', sans-serif; background-color: var(--bg-black); color: var(--text-white); padding: 20px; }
 
-    h1 {
-      font-size: 30px; font-weight: 700; margin-bottom: 24px; position: relative; color: var(--text);
-    }
-    h1::after { content: ""; display: block; width: 70px; height: 4px; background: var(--accent); border-radius: 2px; margin-top: 8px; }
-    h2 { margin: 32px 0 14px; font-size: 20px; color: var(--muted); font-weight: 600; letter-spacing: 0.5px; }
+    header { display: flex; justify-content: space-between; align-items: center; padding-bottom: 20px; border-bottom: 1px solid var(--border); margin-bottom: 25px; gap: 15px; flex-wrap: wrap; }
+    h1 { font-weight: 700; font-size: 24px; }
+    h1 span { color: var(--accent); }
 
-    .toolbar { display: flex; gap: 12px; margin-bottom: 24px; flex-wrap: wrap; }
-    .toolbar button {
-      padding: 10px 18px; border: none; border-radius: 10px; font-weight: 600; cursor: pointer;
-      background: var(--accent); color: #fff; transition: all 0.2s ease;
-    }
-    .toolbar button:hover { transform: translateY(-2px); box-shadow: 0 6px 14px rgba(0,0,0,0.15); }
-    .excluir-tudo { background: var(--danger); }
+    .tabs { display: flex; gap: 10px; }
+    .tab-btn { padding: 12px 24px; background: var(--card-gray); border: 1px solid var(--border); color: var(--text-dim); cursor: pointer; border-radius: 8px; font-weight: 600; transition: 0.2s; }
+    .tab-btn.active { background: var(--accent); color: #000; border-color: var(--accent); }
 
-    .lista { display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(340px, 1fr)); }
+    .content-section { display: none; }
+    .content-section.active { display: block; }
 
-    .pedido {
-      background: var(--card); border-radius: 18px; padding: 20px;
-      box-shadow: 0 6px 16px rgba(0,0,0,0.08); transition: transform 0.25s ease, box-shadow 0.25s ease;
-      border: 1px solid var(--border);
-    }
-    .pedido:hover { transform: translateY(-6px); box-shadow: 0 10px 24px rgba(0,0,0,0.12); }
-    .pedido.entrega-saiu { border: 3px solid var(--ok); }
+    /* Grid e Cards Estilo Original */
+    .lista { display: grid; gap: 20px; grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); }
+    .grid-mesas { display: grid; gap: 15px; grid-template-columns: repeat(auto-fill, minmax(160px, 1fr)); }
 
-    .status {
-      display: inline-block; padding: 6px 14px; border-radius: 999px; font-size: 13px; font-weight: 600;
-      margin-bottom: 12px; letter-spacing: 0.3px;
-    }
-    .status.confirmado { background: rgba(39, 174, 96, 0.12); color: var(--ok); }
-    .status.em-entrega { background: rgba(52, 152, 219, 0.12); color: var(--accent); }
+    .pedido, .mesa-card { background: var(--card-gray); border: 1px solid var(--border); border-radius: 16px; padding: 20px; transition: 0.2s; }
+    .pedido.origem-mesa { border-left: 5px solid var(--success); }
+    .mesa-card { text-align: center; cursor: pointer; border: 2px solid var(--border); }
+    .mesa-card.ocupada { border-color: var(--danger); background: #1a0a0a; }
+    .mesa-card.disponivel { border-color: var(--success); }
 
-    .itens { margin: 12px 0; }
-    .itens .item {
-      background: #fafbfc; border: 1px solid #e6e9ef; border-radius: 12px; padding: 10px 12px;
-      margin-top: 8px; font-size: 14px; color: #444; transition: background 0.2s ease, transform 0.2s ease;
-    }
-    .itens .item:hover { background: #f0f6ff; transform: translateX(4px); }
+    /* Accordion Menu */
+    .cat-container { margin-bottom: 10px; border-radius: 10px; overflow: hidden; border: 1px solid #333; }
+    .cat-header { background: #222; padding: 15px; cursor: pointer; display: flex; justify-content: space-between; font-weight: bold; color: var(--accent); }
+    .cat-content { display: none; background: #111; padding: 10px; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .cat-content.open { display: grid; }
 
-    .itens .addon { font-size: 13px; color: #666; margin-left: 20px; font-style: italic; }
+    .item-btn { background: #1a1a1a; padding: 12px; border-radius: 8px; cursor: pointer; border: 1px solid #333; display: flex; flex-direction: column; font-size: 13px; }
+    .item-btn:hover { border-color: var(--accent); }
+    .item-btn b { color: var(--accent); margin-top: 4px; }
 
-    .botoes { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
-    .botoes button {
-      border: none; border-radius: 8px; padding: 10px 14px; font-weight: 600; cursor: pointer;
-      transition: all 0.2s ease; color: #fff; flex: 1; min-width: 120px;
-    }
-    .botoes button:hover { transform: translateY(-2px); box-shadow: 0 4px 12px rgba(0,0,0,0.15); }
-    .botoes .excluir { background: var(--danger); }
-    .botoes .whatsapp { background: #2ecc71; }
-    .botoes .whatsapp-entrega { background: var(--accent); }
-    .botoes .desmarcar-entrega { background: #95a5a6; }
+    /* Modal */
+    .modal { position: fixed; top:0; left:0; width: 100%; height: 100%; background: rgba(0,0,0,0.95); display: none; justify-content: center; align-items: center; z-index: 1000; }
+    .modal-content { background: var(--card-gray); width: 95%; max-width: 1000px; height: 90vh; border-radius: 20px; padding: 25px; display: flex; flex-direction: column; }
+    .modal-body { display: grid; grid-template-columns: 1.2fr 0.8fr; gap: 20px; overflow: hidden; flex-grow: 1; }
+    .scroll-area { overflow-y: auto; padding-right: 10px; }
 
-    .sem-pedidos {
-      color: var(--muted); font-size: 15px; border: 1px dashed var(--border); padding: 16px;
-      border-radius: 14px; background: #f9fbfd; text-align: center; font-style: italic;
-    }
+    /* Botões de Ação Original */
+    .btn-fechar { background: var(--success); color: #000; padding: 15px; border-radius: 8px; font-weight: 700; border: none; cursor: pointer; width: 100%; margin-top: 10px; font-size: 16px; }
+    .btn-del { background: #331a1a; color: var(--danger); padding: 8px 12px; border-radius: 6px; border: none; cursor: pointer; font-size: 11px; font-weight: 600; }
+    
+    .itens-lista { margin: 15px 0; padding: 12px; background: #000000; border-radius: 10px; font-size: 14px; min-height: 100px; }
+    .item-row { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; border-bottom: 1px solid #222; }
+    /* Ajuste para que o texto do select do SweetAlert fique visível */
+.swal2-select {
+  color: #000 !important; /* Texto preto */
+  background-color: #fff !important; /* Fundo branco para contraste */
+  font-family: 'Outfit', sans-serif;
+  border-radius: 8px;
+}
+
+/* Ajuste para as opções dentro do select */
+.swal2-select option {
+  color: #000 !important;
+  background-color: #fff !important;
+}
+/* Layout padrão (desktop) */
+.modal-body {
+  display: grid;
+  grid-template-columns: 1.2fr 0.8fr;
+  gap: 20px;
+  overflow: hidden;
+  flex-grow: 1;
+}
+
+/* Layout adaptado para celular */
+@media (max-width: 768px) {
+  .modal-body {
+    grid-template-columns: 1fr; /* apenas uma coluna */
+    grid-template-rows: auto auto; /* cardápio em cima, resumo embaixo */
+  }
+
+  /* opcional: aumentar o espaço interno no celular */
+  .modal-content {
+    width: 100%;
+    height: 100vh;
+    border-radius: 0; /* ocupa toda a tela */
+    padding: 15px;
+  }
+}
+/* Em telas grandes (desktop), força 3 colunas */
+@media (min-width: 1024px) {
+  .lista {
+    grid-template-columns: repeat(3, 1fr);
+  }
+}
+
   </style>
 </head>
 <body>
-  <h1>📦 Painel de Pedidos</h1>
 
-  <div class="toolbar">
-    <a href="index.3.html"><button style="background-color: rgb(0, 102, 0);" class="excluir-tudo">PEDIDOS DAS MESAS</button></a>
-    <button id="ativarSom">🔊 Ativar Som</button>
-    <button style="background-color: red;" id="btnExcluirTudo" class="excluir-tudo">🗑️ Excluir Todos os Pedidos</button>
+ <header>
+  <h1>JHONNY<span>BAGDÁ</span></h1>
+  <div class="tabs">
+    <button class="tab-btn active" onclick="switchTab('delivery')">DELIVERY</button>
+    <button class="tab-btn" onclick="switchTab('salao')">SALÃO/MESAS</button>
   </div>
+  
+  <button onclick="toggleAdminMenu()" class="tab-btn" style="background:#222; border-color: var(--accent);">⚙️</button>
 
-  <h2>🆕 Pedido Atual</h2>
-  <div id="lista-pedidos" class="lista"></div>
+  <div id="adminMenu" style="display:none; position: absolute; top: 70px; right: 20px; background: var(--card-gray); border: 1px solid var(--accent); border-radius: 12px; padding: 15px; z-index: 2000; box-shadow: 0 10px 30px rgba(0,0,0,0.5); flex-direction: column; gap: 10px;">
+    <button id="ativarSom" class="tab-btn" style="background:var(--accent); color:#000; width: 100%;">🔔 ATIVAR SISTEMA</button>
+    <button class="tab-btn" onclick="switchTab('balanco'); toggleAdminMenu();" style="width: 100%;">📊 VER BALANÇO</button>
+    <button class="btn-del" onclick="apagarTodosPedidos(); toggleAdminMenu();" style="padding: 12px; font-size: 14px;">🗑️ APAGAR TUDO</button>
+  </div>
+</header>
 
-  <h2>📜 Pedidos Antigos</h2>
-  <div id="lista-antigos" class="lista"></div>
+  <main id="delivery-section" class="content-section active">
+    <h2>🔔 Pedidos Novos</h2>
+    <div id="lista-pedidos" class="lista"></div>
+    <h2 style="margin-top:40px; color: var(--text-dim)">📂 Histórico Recente</h2>
+    <div id="lista-antigos" class="lista"></div>
+  </main>
+
+  <main id="salao-section" class="content-section">
+    <h2>🍽️ Mapa de Mesas em Tempo Real</h2>
+    <div id="grid-mesas" class="grid-mesas"></div>
+  </main>
+<main id="balanco-section" class="content-section">
+  <h2>📊 Balanço Geral</h2>
+  <div id="balancoValores" style="margin-top:20px; font-size:18px"></div>
+</main>
+
+  <div id="modalMesa" class="modal">
+    <div class="modal-content">
+      <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:20px">
+        <h2 id="modalTitulo" style="color:var(--accent)">Mesa 00</h2>
+        <button onclick="fecharModal()" class="tab-btn">VOLTAR</button>
+      </div>
+      <div class="modal-body">
+        <div class="scroll-area" id="cardapioRender"></div>
+        <div style="display:flex; flex-direction:column; background:#0b0b0b; padding:20px; border-radius:15px; border: 1px solid #222;">
+          <h3 style="margin-bottom:10px">Resumo da Conta</h3>
+          <div id="consumoMesa" class="itens-lista" style="flex-grow:1; overflow-y:auto"></div>
+          <h2 id="totalMesa" style="color:var(--accent); font-size: 36px; margin-bottom:15px">R$ 0,00</h2>
+          <button class="btn-fechar" onclick="enviarFechamentoMesa()">FECHAR CONTA E IMPRIMIR</button>
+        </div>
+      </div>
+    </div>
+  </div>
 
   <audio id="bip" preload="auto">
     <source src="https://actions.google.com/sounds/v1/alarms/alarm_clock.ogg" type="audio/ogg">
@@ -107,218 +169,444 @@
 
   <script type="module">
     import { initializeApp } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-app.js";
-    import {
-      getFirestore, collection, onSnapshot, orderBy, query, limit,
-      deleteDoc, doc, getDocs
-    } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-firestore.js";
+    import { getFirestore, collection, onSnapshot, orderBy, query, deleteDoc, doc, addDoc, setDoc, serverTimestamp, getDocs } from "https://www.gstatic.com/firebasejs/10.5.2/firebase-firestore.js";
 
-    // ATENÇÃO: substitua pela sua chave (igual ao site)
     const firebaseConfig = {
       apiKey: "AIzaSyBHBcJHtU_o8tjsJCSoCsO665M3N72mF8g",
       authDomain: "meusiteaki2025.firebaseapp.com",
       projectId: "meusiteaki2025",
       storageBucket: "meusiteaki2025.firebasestorage.app",
       messagingSenderId: "1059720978927",
-      appId: "1:1059720978927:web:c4e5fde24aa95672d0161a",
-      measurementId: "G-KD8EDDRLWZ"
+      appId: "1:1059720978927:web:c4e5fde24aa95672d0161a"
     };
 
     const app = initializeApp(firebaseConfig);
     const db = getFirestore(app);
 
-    const listaPedidos = document.getElementById('lista-pedidos');
-    const listaAntigos = document.getElementById('lista-antigos');
-    const btnExcluirTudo = document.getElementById('btnExcluirTudo');
-    const bip = document.getElementById('bip');
-    const btnAtivarSom = document.getElementById('ativarSom');
+    const cardapio = {
+      "Lanches": [
+        { nome:"Misto", preco:6 }, { nome:"Americano", preco:10 }, { nome:"X-Salsicha", preco:12 },
+        { nome:"Bauru Simples", preco:12 }, { nome:"Bauru Especial", preco:14 }, { nome:"Hambúrguer", preco:14 },
+        { nome:"X-Catupiry", preco:14 }, { nome:"X-Salada Simples", preco:14 }, { nome:"X-Abacaxi", preco:16 },
+        { nome:"X-Salada Especial", preco:15 }, { nome:"X-Banana", preco:16 }, { nome:"X-Calabresa Simples", preco:15 },
+        { nome:"X-Calabresa Especial", preco:17 }, { nome:"X-Bacon", preco:17 }, { nome:"X-Frango Simples", preco:15 },
+        { nome:"X-Frango Especial", preco:17 }, { nome:"X-Tudo", preco:18 }, { nome:"X-Filé", preco:25 },
+        { nome:"X-Jhone Broca", preco:22 }, { nome:"X-Completação", preco:26 }, { nome:"X-Arrisca", preco:28 }
+      ],
+      "Bebidas": [
+        { nome:"Refrigerante 250ml", preco:4, marcas:["Coca-Cola","Guaraná Antártica","Fanta","River"] },
+        { nome:"Refrigerante Lata 350ml", preco:6, marcas:["Coca-Cola","Guaraná Antártica","Fanta","Sprite","Gua.Jesus"] },
+        { nome:"Refrigerante 600ml", preco:7, marcas:["Coca-Cola","Guaraná Antártica","Fanta","River"] },
+        { nome:"Refrigerante 1L", preco:10, marcas:["Coca-Cola","Guaraná Antártica","Fanta","River"] },
+        { nome:"Refrigerante 1,5L", preco:11, marcas:["Coca-Cola","Fanta"] },
+        { nome:"Refrigerante 2L", preco:13, marcas:["Coca-Cola","Guaraná Antártica","Fanta","River","Coca Zero","Fanta Uva"] },
+        { nome:"Suco de Acerola", preco:6 }, { nome:"Suco de Maracujá", preco:6 }, { nome:"Suco de Cupuaçu", preco:7 },
+        { nome:"Suco de Laranja 450ml", preco:8 }, { nome:"Vitamina de Cupuaçu", preco:7 }
+      ],
+      "Porções": [ { nome:"Porção de batata frita", preco:17 } ],
+      "Adicionais": [
+        { nome:"Bacon", preco:3 }, { nome:"Calabresa", preco:2 }, { nome:"Cheddar", preco:2 },
+        { nome:"Carne Hambúrguer", preco:5 }, { nome:"Filé de Frango", preco:5 }, { nome:"Filé", preco:7 },
+        { nome:"Presunto", preco:2 }, { nome:"Queijo", preco:2 }, { nome:"Ovo", preco:2 }, { nome:"Salsicha", preco:1 },
+        { nome:"Banana", preco:3 }, { nome:"Catupiry", preco:2 }, { nome:"Maionese Temperada", preco:1 }
+      ]
+    };
 
+    let mesaAtiva = null;
+    let mesasConsumo = {};
     let somAtivado = false;
+    const audioBip = document.getElementById('bip');
 
-    // LocalStorage helpers
-    function getEntregues() {
-      try { return JSON.parse(localStorage.getItem("pedidosEntregues") || "[]"); }
-      catch { return []; }
-    }
-    function setEntregues(arr) { localStorage.setItem("pedidosEntregues", JSON.stringify(arr)); }
-    function marcarEntrega(id) {
-      const entregues = getEntregues();
-      if (!entregues.includes(id)) { entregues.push(id); setEntregues(entregues); }
-    }
-    function desmarcarEntrega(id) { setEntregues(getEntregues().filter(x => x !== id)); }
-    function isEntregue(id) { return getEntregues().includes(id); }
+    // ATIVAÇÃO
+    document.getElementById('ativarSom').onclick = function() { somAtivado = true; this.style.display = 'none'; };
 
-    // Ativar som
-    btnAtivarSom.addEventListener('click', async () => {
-      try { await bip.play(); } catch (_) { }
-      bip.pause(); bip.currentTime = 0;
-      somAtivado = true;
-      alert("Som ativado! Agora os alertas vão funcionar.");
-      btnAtivarSom.style.display = "none";
+    window.switchTab = (tab) => {
+      document.querySelectorAll('.tab-btn, .content-section').forEach(el => el.classList.remove('active'));
+      document.getElementById(tab + '-section').classList.add('active');
+      event.currentTarget.classList.add('active');
+    };
+
+    // SYNC MAPA MESAS
+    onSnapshot(collection(db, "mapa_mesas"), (snap) => {
+      mesasConsumo = {};
+      snap.forEach(d => { mesasConsumo[d.id] = d.data().itens || []; });
+      renderMapaMesas();
+      if(mesaAtiva) atualizarConsumo();
     });
 
-    function tocarAlerta() {
-      if (!somAtivado) return;
-      bip.volume = 1.0; bip.currentTime = 0; bip.play();
-      setTimeout(() => { bip.currentTime = 0; bip.play(); }, 1000);
+   // SYNC DELIVERY & BIPS
+// --- 1. SYNC DELIVERY & BIPS (SUBSTITUA DESDE O ONSNAPSHOT ATÉ O FINAL DELE) ---
+onSnapshot(query(collection(db, "pedidos"), orderBy("timestamp", "desc")), (snap) => {
+    const listaP = document.getElementById('lista-pedidos');
+    const listaA = document.getElementById('lista-antigos');
+    
+    if (!listaP || !listaA) return; 
+
+    listaP.innerHTML = ""; 
+    listaA.innerHTML = "";
+
+    if (somAtivado && !snap.metadata.fromCache && snap.docChanges().some(c => c.type === "added")) {
+        if (audioBip) audioBip.play().catch(() => {});
     }
 
-    function formatarDinheiro(valor) {
-      if (valor === null || valor === undefined || valor === '') return '0,00';
-      const n = typeof valor === 'number'
-        ? valor
-        : parseFloat(String(valor).replace(/[^\d,.-]/g, '').replace(',', '.')) || 0;
-      return n.toFixed(2).replace('.', ',');
-    }
+    snap.docs.forEach((d, i) => {
+        const p = d.data();
+        const id = d.id;
+        const eMesa = p.cliente && p.cliente.includes("MESA");
+        const container = (i === 0) ? listaP : listaA;
+        const div = document.createElement('div');
+        div.className = `pedido ${eMesa ? 'origem-mesa' : ''}`;
 
-    function textoStatus(status) {
-      if (status === "confirmado") return `<span class="status confirmado">✅ Confirmado</span>`;
-      if (status === "entrega") return `<span class="status em-entrega">🚚 Em Entrega</span>`;
-      return "";
-    }
+        const itensHtml = (p.itens || []).map(it =>
+            `${it.quantity || 1}x ${it.name} — R$ ${Number(it.price || 0).toFixed(2).replace('.', ',')}`
+        ).join('<br>');
 
-    function calcularTotal(pedido) {
-      const itens = Array.isArray(pedido.itens) ? pedido.itens : [];
-      const subtotal = itens.reduce((acc, item) => {
-        const preco = parseFloat(String(item.price || 0).replace(',', '.')) || 0;
-        const qtd = parseInt(item.quantity || 0);
-        // soma item
-        let soma = acc + (preco * qtd);
-        // soma adicionais (se houver)
-        if (Array.isArray(item.addons)) {
-          item.addons.forEach(a => {
-            const ap = parseFloat(String(a.price || 0).replace(',', '.')) || 0;
-            const aq = parseInt(a.quantity || 0);
-            soma += ap * aq;
-          });
-        }
-        return soma;
-      }, 0);
-      const entrega = parseFloat(String(pedido.taxaEntrega || 0).replace(',', '.')) || 0;
-      return subtotal + entrega;
-    }
+        const taxaEntrega = p.taxaEntrega ? `🚚 Entrega: R$ ${Number(p.taxaEntrega).toFixed(2).replace('.', ',')}<br>` : '';
+        const obs = p.observacao ? `📝 Obs: ${p.observacao}` : '';
 
-    function renderPedido(docSnap, container) {
-      const pedido = docSnap.data();
-      const div = document.createElement('div');
-      div.classList.add('pedido');
-
-      const statusHtml = textoStatus(pedido.status);
-      const total = calcularTotal(pedido);
-
-      if (isEntregue(docSnap.id)) div.classList.add('entrega-saiu');
-
-      // Render dos itens + adicionais
-      const itensHtml = (Array.isArray(pedido.itens) ? pedido.itens : []).map(item => {
-        let addonsHTML = "";
-        if (item.addons && item.addons.length > 0) {
-          addonsHTML = item.addons.map(a =>
-            `<div class="addon">↳ ${a.quantity || 0}x ${a.name || "-"}</div>`
-          ).join('');
-        }
-        const brandText = item.brand ? ` (${item.brand})` : '';
-        return `
-          <div class="item">
-            ${item.quantity || 0}x ${item.name || "-"}${brandText} — R$ ${formatarDinheiro(item.price || 0)}
-            ${addonsHTML}
-          </div>
+        div.innerHTML = `
+            <div style="margin-bottom:10px">
+                <b>👤 Cliente:</b> ${p.cliente}<br>
+                ${p.telefone ? `📞 Tel: ${p.telefone}<br>` : ''}
+                ${p.endereco ? `🏠 Endereço: ${p.endereco}<br>` : ''}
+                ${p.pagamento ? `💳 Pagamento: ${p.pagamento}<br>` : ''}
+            </div>
+            <div style="margin-bottom:10px">
+                🍔 <b>Itens:</b><br>${itensHtml}<br>
+                <br>${taxaEntrega}
+                💰 <b>Total:</b> ${p.total}
+                <br>${obs}
+            </div>
+            <button class="btn-del" onclick="deletarDoc('${id}')">REMOVER</button>
+            ${p.endereco ? `<button class="tab-btn rota-btn" style="background:#4285F4; color:#fff" data-endereco="${p.endereco}">📍 Ver rota</button>` : ''}
         `;
-      }).join('') || "<div class='item'>Nenhum item</div>";
 
-      div.innerHTML = `
-        ${statusHtml}
-        <p><strong>👤 Cliente:</strong> ${pedido.cliente || "-"}</p>
-        <p><strong>📞 Tel:</strong> ${pedido.telefone || "-"}</p>
-        <p><strong>🏠 Endereço:</strong> ${pedido.endereco || "-"}</p>
-        <p><strong>💳 Pagamento:</strong> ${pedido.pagamento || "-"}</p>
-        <div class="itens">
-          <strong>🍔 Itens:</strong>
-          ${itensHtml}
-        </div>
-        <p><strong>🚚 Entrega:</strong> R$ ${formatarDinheiro(pedido.taxaEntrega)}</p>
-        <p><strong>💰 Total:</strong> R$ ${formatarDinheiro(total)}</p>
-        ${pedido.observacao ? `<p><strong>📝 Obs:</strong> ${pedido.observacao}</p>` : ""}
-        <div class="botoes">
-          <button class="excluir">🗑️ Excluir</button>
-          <button class="whatsapp">💬 WhatsApp</button>
-          <button class="whatsapp-entrega">📦 Saiu p/ Entrega</button>
-          <button class="desmarcar-entrega" title="Remover marcação local">🔄 Desmarcar Entrega</button>
-        </div>
-      `;
+        container.appendChild(div);
+    });
 
-      // Excluir
-      div.querySelector('.excluir').addEventListener('click', async () => {
-        if (confirm("Tem certeza que deseja excluir este pedido?")) {
-          await deleteDoc(doc(db, "pedidos", docSnap.id));
-          desmarcarEntrega(docSnap.id);
-        }
-      });
+    // 2. ADICIONAR EVENTOS (Corrigido para usar a função atualizada)
+    document.querySelectorAll(".rota-btn").forEach(btn => {
+        btn.onclick = () => {
+            let endereco = btn.getAttribute("data-endereco").trim();
+            mostrarRota(endereco);
+        };
+    });
+});
 
-      // WhatsApp preparo
-      div.querySelector('.whatsapp').addEventListener('click', () => {
-        const numero = String(pedido.telefone || "").replace(/\D/g, '');
-        if (!numero) return alert("Telefone inválido.");
-        const hora = new Date().getHours();
-        const saudacao = hora >= 18 ? "Boa noite" : "Boa tarde";
-        const mensagem = `${saudacao}, seu pedido já está na fila de preparo, por favor aguarde!`;
-        const url = `https://wa.me/55${numero}?text=${encodeURIComponent(mensagem)}`;
-        window.open(url, '_blank');
-      });
+// --- 2. FUNÇÃO MOSTRAR ROTA (Mantenha esta fora do onSnapshot) ---
+function mostrarRota(enderecoCliente) {
+    if (!enderecoCliente) return;
 
-      // WhatsApp entrega + marcação local
-      div.querySelector('.whatsapp-entrega').addEventListener('click', () => {
-        const numero = String(pedido.telefone || "").replace(/\D/g, '');
-        if (!numero) return alert("Telefone inválido.");
-        const mensagem = "Olá! Seu pedido já saiu para entrega 🚚. Muito obrigado e volte sempre. *Jhonny Bagdá agradece!*";
-        const url = `https://wa.me/55${numero}?text=${encodeURIComponent(mensagem)}`;
-        window.open(url, '_blank');
+    const API_KEY = "AIzaSyBHf-79l4rVWBx9S4HHhod-qfvatPrTsGA";
+    const origem = "1036 R. José dos Réis Feitosa, Itinga do Maranhão, Maranhão";
+    
+    // --- LÓGICA DE LIMPEZA (O SANITIZADOR) ---
+    let enderecoFormatado = enderecoCliente.trim();
 
-        div.classList.add('entrega-saiu');
-        marcarEntrega(docSnap.id);
-      });
-
-      // Remover marcação local
-      div.querySelector('.desmarcar-entrega').addEventListener('click', () => {
-        div.classList.remove('entrega-saiu');
-        desmarcarEntrega(docSnap.id);
-      });
-
-      container.appendChild(div);
+    // 1. Se não tiver vírgula, tenta colocar uma antes do primeiro número encontrado
+    if (!enderecoFormatado.includes(',')) {
+        enderecoFormatado = enderecoFormatado.replace(/(\s)(\d+)/, ', $2');
     }
 
-    // Pedido atual (mais recente) com alerta sonoro em novo pedido
-    const qAtual = query(collection(db, "pedidos"), orderBy("timestamp", "desc"), limit(1));
-    onSnapshot(qAtual, snapshot => {
-      listaPedidos.innerHTML = "";
-      if (snapshot.empty) {
-        listaPedidos.innerHTML = "<p class='sem-pedidos'>Nenhum pedido no momento.</p>";
-        return;
-      }
-      snapshot.forEach(docSnap => renderPedido(docSnap, listaPedidos));
-      snapshot.docChanges().forEach(change => {
-        if (change.type === 'added') tocarAlerta();
-      });
-    });
+    // 2. Garante que Itinga e o CEP estejam no final para travar o GPS na região
+    if (!/itinga/i.test(enderecoFormatado)) {
+        enderecoFormatado += ", Itinga do Maranhão, MA, 65939-000, Brasil";
+    }
 
-    // Pedidos antigos (todos menos o mais recente)
-    const qAntigos = query(collection(db, "pedidos"), orderBy("timestamp", "desc"));
-    onSnapshot(qAntigos, snapshot => {
-      listaAntigos.innerHTML = "";
-      if (snapshot.empty || snapshot.size === 1) {
-        listaAntigos.innerHTML = "<p class='sem-pedidos'>Sem pedidos antigos.</p>";
-        return;
-      }
-      const antigos = snapshot.docs.slice(1);
-      antigos.forEach(docSnap => renderPedido(docSnap, listaAntigos));
-    });
+    // --- FIM DA LIMPEZA ---
 
-    // Excluir todos os pedidos
-    btnExcluirTudo.addEventListener('click', async () => {
-      if (!confirm("Tem certeza que deseja excluir TODOS os pedidos?")) return;
-      const pedidos = await getDocs(collection(db, "pedidos"));
-      const promises = pedidos.docs.map(d => deleteDoc(d.ref));
-      await Promise.all(promises);
-      localStorage.removeItem("pedidosEntregues");
+    // Usamos o modo VIEW com ZOOM máximo para maior detalhamento
+    const iframeUrl = `https://www.google.com/maps/embed/v1/place?key=${API_KEY}&q=${encodeURIComponent(enderecoFormatado)}&zoom=19`;
+
+    Swal.fire({
+        title: 'Localização da Entrega',
+        html: `
+            <div style="border-radius:12px; overflow:hidden; background: #222; border: 2px solid var(--accent);">
+                <iframe width="100%" height="400" style="border:0" src="${iframeUrl}" allowfullscreen></iframe>
+            </div>
+            <div style="background:#222; padding:10px; margin-top:10px; border-radius:8px; text-align:left;">
+                <small style="color:#00e676; font-weight:bold;">📍 Endereço Processado:</small><br>
+                <span style="color:#fff; font-size:13px;">${enderecoFormatado}</span>
+            </div>
+            <div style="margin-top:15px;">
+                <a href="https://www.google.com/maps/dir/?api=1&origin=${encodeURIComponent(origem)}&destination=${encodeURIComponent(enderecoFormatado)}&travelmode=driving" 
+                   target="_blank" 
+                   style="display:block; padding:18px; background:#4285F4; color:white; text-decoration:none; border-radius:10px; font-weight:bold; text-align:center; font-size:18px;">
+                   🚗 INICIAR NAVEGAÇÃO NO GPS
+                </a>
+            </div>`,
+        width: 800,
+        background: '#161616',
+        color: '#fff',
+        showConfirmButton: false,
+        showCloseButton: true
     });
+}
+
+    function renderMapaMesas() {
+      const grid = document.getElementById('grid-mesas');
+      grid.innerHTML = "";
+      for(let i=1; i<=10; i++) {
+        const itens = mesasConsumo[i] || [];
+        const ocupada = itens.length > 0;
+        const total = itens.reduce((acc, it) => acc + (Number(it.preco) || 0), 0);
+        const div = document.createElement('div');
+        div.className = `mesa-card ${ocupada ? 'ocupada' : 'disponivel'}`;
+        div.onclick = () => abrirMesa(i);
+        div.innerHTML = `<h3>${i.toString().padStart(2, '0')}</h3><p>${ocupada ? 'R$ '+total.toFixed(2).replace('.',',') : 'LIVRE'}</p>`;
+        grid.appendChild(div);
+      }
+    }
+
+    window.abrirMesa = (num) => {
+      mesaAtiva = num;
+      document.getElementById('modalTitulo').innerText = `Atendimento Mesa ${num}`;
+      document.getElementById('modalMesa').style.display = 'flex';
+      renderAccordion();
+      atualizarConsumo();
+    };
+
+    function renderAccordion() {
+      const container = document.getElementById('cardapioRender');
+      container.innerHTML = "";
+      for(let cat in cardapio) {
+        const div = document.createElement('div');
+        div.className = 'cat-container';
+        div.innerHTML = `<div class="cat-header" onclick="toggleCat(this)">${cat.toUpperCase()} <span>+</span></div>`;
+        const content = document.createElement('div');
+        content.className = 'cat-content';
+        cardapio[cat].forEach(it => {
+          const btn = document.createElement('div');
+          btn.className = 'item-btn';
+          btn.onclick = () => processarItem(it);
+          btn.innerHTML = `<span>${it.nome}</span><b>R$ ${it.preco.toFixed(2)}</b>`;
+          content.appendChild(btn);
+        });
+        div.appendChild(content);
+        container.appendChild(div);
+      }
+    }
+
+    window.toggleCat = (el) => {
+      const content = el.nextElementSibling;
+      const isOpen = content.classList.contains('open');
+      document.querySelectorAll('.cat-content').forEach(c => c.classList.remove('open'));
+      if(!isOpen) content.classList.add('open');
+    };
+
+   async function processarItem(item) {
+  let nomeFinal = item.nome;
+  let precoFinal = item.preco;
+  let extras = [];
+
+  // 1. Escolher Marca (se for bebida)
+  if(item.marcas) {
+    const { value: marca } = await Swal.fire({
+      title: 'Qual marca?',
+      input: 'select',
+      inputOptions: item.marcas.reduce((obj, m) => { obj[m] = m; return obj; }, {}),
+      background: '#161616', color: '#fff', confirmButtonColor: '#ffb800'
+    });
+    if(!marca) return;
+    nomeFinal += ` (${marca})`;
+  }
+
+  // 2. ADICIONAIS (Carnes, Complementos, Vegetais, etc.)
+  // Definimos a lista completa conforme sua solicitação
+  const listaAdicionais = {
+    "Carnes": [ {n:"Carne Hambúrguer", p:5}, {n:"Filé de Frango", p:5}, {n:"Filé", p:7} ],
+    "Complementos": [ {n:"Presunto", p:2}, {n:"Queijo", p:2}, {n:"Calabresa", p:2}, {n:"Ovo", p:2}, {n:"Bacon", p:3}, {n:"Salsicha", p:1} ],
+    "Vegetais": [ {n:"Alface", p:1}, {n:"Tomate", p:1}, {n:"Cebola", p:2} ],
+    "Outros": [ {n:"Banana", p:3}, {n:"Cheddar", p:2}, {n:"Catupiry", p:2} ],
+    "Molhos": [ {n:"Mostarda", p:1}, {n:"Barbecue", p:1}, {n:"Maionese Temperada", p:1} ]
+  };
+
+  // Criando as opções para o Select do SweetAlert
+  let opcoesAdicionais = { "nenhum": "Sem adicionais" };
+  for (let cat in listaAdicionais) {
+    listaAdicionais[cat].forEach(ad => {
+      opcoesAdicionais[ad.n] = `${ad.n} (+R$ ${ad.p.toFixed(2)})`;
+    });
+  }
+
+  const { value: addSelecionado } = await Swal.fire({
+    title: 'Adicionar Extra?',
+    input: 'select',
+    inputOptions: opcoesAdicionais,
+    background: '#161616', color: '#fff', confirmButtonColor: '#ffb800',
+    showCancelButton: true,
+    cancelButtonText: 'Próximo'
+  });
+
+  if (addSelecionado && addSelecionado !== "nenhum") {
+    // Encontrar o preço do adicional selecionado
+    let objAd;
+    for (let cat in listaAdicionais) {
+      const busca = listaAdicionais[cat].find(a => a.n === addSelecionado);
+      if (busca) objAd = busca;
+    }
+    
+    if (objAd) {
+      precoFinal += objAd.p;
+      extras.push(objAd.n);
+    }
+  }
+
+  // 3. OBSERVAÇÃO (Sem cebola, bem passado, etc.)
+  const { value: obs } = await Swal.fire({
+    title: 'Observação do Item',
+    input: 'text',
+    inputPlaceholder: 'Ex: Sem cebola, caprichar no molho...',
+    background: '#161616', color: '#fff', confirmButtonColor: '#ffb800',
+    showCancelButton: true,
+    cancelButtonText: 'Pular'
+  });
+
+  // Montagem do texto final
+  const descExtras = extras.length > 0 ? ` + ${extras.join(', ')}` : "";
+
+  // 4. SALVAR NO FIREBASE
+  const novos = [...(mesasConsumo[mesaAtiva] || []), { 
+    nome: nomeFinal + descExtras, 
+    preco: precoFinal,
+    obs: obs || "" 
+  }];
+  
+  await setDoc(doc(db, "mapa_mesas", mesaAtiva.toString()), { itens: novos });
+}
+// remover
+    window.removerItemMesa = async (idx) => {
+      const novos = [...mesasConsumo[mesaAtiva]];
+      novos.splice(idx, 1);
+      if(novos.length > 0) await setDoc(doc(db, "mapa_mesas", mesaAtiva.toString()), { itens: novos });
+      else await deleteDoc(doc(db, "mapa_mesas", mesaAtiva.toString()));
+    };
+
+    function atualizarConsumo() {
+  const itens = mesasConsumo[mesaAtiva] || [];
+  const total = itens.reduce((acc, it) => acc + (Number(it.preco) || 0), 0);
+  
+  document.getElementById('consumoMesa').innerHTML = itens.map((it, idx) => `
+    <div class="item-row" style="flex-direction: column; align-items: flex-start; padding: 10px 0;">
+      <div style="display: flex; justify-content: space-between; width: 100%;">
+        <b style="color:var(--accent)">${it.nome}</b>
+        <span>R$ ${it.preco.toFixed(2)} <button onclick="removerItemMesa(${idx})" style="background:none; border:none; color:red; cursor:pointer; margin-left:8px">✕</button></span>
+      </div>
+      ${it.obs ? `<small style="color: #00e676; margin-top: 4px;">📝 Obs: ${it.obs}</small>` : ''}
+    </div>
+  `).join('');
+  
+  document.getElementById('totalMesa').innerText = `R$ ${total.toFixed(2).replace('.', ',')}`;
+}
+
+   window.enviarFechamentoMesa = async () => {
+  const itens = mesasConsumo[mesaAtiva];
+  if(!itens || itens.length === 0) return;
+
+  const { value: forma } = await Swal.fire({
+    title: 'Forma de pagamento?',
+    input: 'select',
+    inputOptions: { PIX: 'PIX', Cartao: 'Cartão', Dinheiro: 'Dinheiro' },
+    background: '#161616', color: '#fff', confirmButtonColor: '#ffb800'
+  });
+
+  if(!forma) return;
+
+  const total = itens.reduce((acc, it) => acc + (Number(it.preco) || 0), 0);
+  await addDoc(collection(db, "pedidos"), {
+    cliente: `MESA ${mesaAtiva.toString().padStart(2, '0')}`,
+    total: "R$ " + total.toFixed(2).replace('.', ','),
+    pagamento: forma, // <-- novo campo
+    timestamp: serverTimestamp(),
+    itens: itens.map(i => ({ name: i.nome, price: i.preco, quantity: 1 }))
+  });
+
+  await deleteDoc(doc(db, "mapa_mesas", mesaAtiva.toString()));
+  fecharModal();
+  Swal.fire({ title: 'Enviado!', icon: 'success', background: '#161616', color: '#fff', timer: 1500, showConfirmButton: false });
+};
+onSnapshot(collection(db, "pedidos"), (snap) => {
+  let totalPix = 0, totalCartao = 0, totalDinheiro = 0;
+
+  snap.docs.forEach(d => {
+    const p = d.data();
+    const valor = Number((p.total || "0").replace("R$","").replace(",","."));
+    if(p.pagamento?.toLowerCase() === "pix") totalPix += valor;
+    else if(p.pagamento?.toLowerCase().includes("cart")) totalCartao += valor; // aceita Cartao ou Cartão
+    else if(p.pagamento?.toLowerCase() === "dinheiro") totalDinheiro += valor;
+  });
+
+  const totalGeral = totalPix + totalCartao + totalDinheiro;
+  document.getElementById('balancoValores').innerHTML = `
+    <p><b>PIX:</b> R$ ${totalPix.toFixed(2).replace('.', ',')}</p>
+    <p><b>Cartão de Crédito:</b> R$ ${totalCartao.toFixed(2).replace('.', ',')}</p>
+    <p><b>Dinheiro:</b> R$ ${totalDinheiro.toFixed(2).replace('.', ',')}</p>
+    <hr>
+    <p style="color:var(--accent); font-size:22px"><b>Total Geral:</b> R$ ${totalGeral.toFixed(2).replace('.', ',')}</p>
+  `;
+});
+
+
+
+    window.deletarDoc = async (id) => {
+      const res = await Swal.fire({ title: 'Excluir?', icon: 'warning', showCancelButton: true, background: '#161616', color: '#fff' });
+      if(res.isConfirmed) await deleteDoc(doc(db, "pedidos", id));
+    };
+
+    window.fecharModal = () => document.getElementById('modalMesa').style.display = 'none';
+
+    // apagar tudo
+    window.apagarTodosPedidos = async () => {
+  const res = await Swal.fire({
+    title: 'Apagar todos os pedidos?',
+    text: 'Essa ação não pode ser desfeita!',
+    icon: 'warning',
+    showCancelButton: true,
+    confirmButtonColor: '#ff4d4d',
+    background: '#161616',
+    color: '#fff'
+  });
+
+  if(res.isConfirmed) {
+    const snapshot = await getDocs(collection(db, "pedidos"));
+    const promises = snapshot.docs.map(d => deleteDoc(doc(db, "pedidos", d.id)));
+    await Promise.all(promises);
+
+    Swal.fire({
+      title: 'Todos os pedidos foram apagados!',
+      icon: 'success',
+      background: '#161616',
+      color: '#fff',
+      timer: 1500,
+      showConfirmButton: false
+    });
+  }
+};
+// Função para abrir/fechar o menu administrativo
+window.toggleAdminMenu = () => {
+  const menu = document.getElementById('adminMenu');
+  const isVisible = menu.style.display === 'flex';
+  menu.style.display = isVisible ? 'none' : 'flex';
+};
+
+// Fechar o menu se clicar fora dele
+document.addEventListener('click', (e) => {
+  const menu = document.getElementById('adminMenu');
+  const btn = e.target.closest('button');
+  if (menu.style.display === 'flex' && !menu.contains(e.target) && (!btn || btn.innerText !== '⚙️')) {
+    menu.style.display = 'none';
+  }
+});
+
+// Ajuste na função Ativar Som para não quebrar o layout do menu
+const btnSom = document.getElementById('ativarSom');
+btnSom.onclick = function() { 
+  somAtivado = true; 
+  this.innerHTML = "🔔 SISTEMA ONLINE";
+  this.style.background = "#00e676"; // Muda para verde quando ativo
+  setTimeout(() => { toggleAdminMenu(); }, 500); // Fecha o menu após ativar
+};
+
   </script>
 </body>
 </html>
