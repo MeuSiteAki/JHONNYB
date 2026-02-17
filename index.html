@@ -15,7 +15,7 @@
       --text-white: #f0f0f0;
       --text-dim: #a0a0a0;
       --danger: #ff4d4d;
-      --success: #00e676;
+      --success: #00e600;
       --border: #262626;
     }
 
@@ -249,40 +249,61 @@ onSnapshot(query(collection(db, "pedidos"), orderBy("timestamp", "desc")), (snap
         if (audioBip) audioBip.play().catch(() => {});
     }
 
-    snap.docs.forEach((d, i) => {
-        const p = d.data();
-        const id = d.id;
-        const eMesa = p.cliente && p.cliente.includes("MESA");
-        const container = (i === 0) ? listaP : listaA;
-        const div = document.createElement('div');
-        div.className = `pedido ${eMesa ? 'origem-mesa' : ''}`;
+  // --- DENTRO DO SEU ONSNAPSHOT DE PEDIDOS ---
+snap.docs.forEach((d, i) => {
+    const p = d.data();
+    const id = d.id;
+    const eMesa = p.cliente && p.cliente.includes("MESA");
+    const container = (i === 0) ? listaP : listaA;
+    const div = document.createElement('div');
+    div.className = `pedido ${eMesa ? 'origem-mesa' : ''}`;
 
-        const itensHtml = (p.itens || []).map(it =>
-            `${it.quantity || 1}x ${it.name} — R$ ${Number(it.price || 0).toFixed(2).replace('.', ',')}`
-        ).join('<br>');
+    // Limpeza do número de telefone (remove espaços e caracteres especiais)
+    const telLimpo = p.telefone ? p.telefone.replace(/\D/g, '') : '';
+    
+    // Mensagens pré-definidas
+    const msgRecebido = encodeURIComponent("Olá, recebemos seu pedido, por favor aguarde...");
+    const msgEntrega = encodeURIComponent("Seu pedido saiu para entrega, JhonnyBagdá agradece!");
 
-        const taxaEntrega = p.taxaEntrega ? `🚚 Entrega: R$ ${Number(p.taxaEntrega).toFixed(2).replace('.', ',')}<br>` : '';
-        const obs = p.observacao ? `📝 Obs: ${p.observacao}` : '';
+    const itensHtml = (p.itens || []).map(it =>
+        `${it.quantity || 1}x ${it.name} — R$ ${Number(it.price || 0).toFixed(2).replace('.', ',')}`
+    ).join('<br>');
 
-        div.innerHTML = `
-            <div style="margin-bottom:10px">
-                <b>👤 Cliente:</b> ${p.cliente}<br>
-                ${p.telefone ? `📞 Tel: ${p.telefone}<br>` : ''}
-                ${p.endereco ? `🏠 Endereço: ${p.endereco}<br>` : ''}
-                ${p.pagamento ? `💳 Pagamento: ${p.pagamento}<br>` : ''}
-            </div>
-            <div style="margin-bottom:10px">
-                🍔 <b>Itens:</b><br>${itensHtml}<br>
-                <br>${taxaEntrega}
-                💰 <b>Total:</b> ${p.total}
-                <br>${obs}
-            </div>
-            <button class="btn-del" onclick="deletarDoc('${id}')">REMOVER</button>
-            ${p.endereco ? `<button class="tab-btn rota-btn" style="background:#4285F4; color:#fff" data-endereco="${p.endereco}">📍 Ver rota</button>` : ''}
-        `;
+    const taxaEntrega = p.taxaEntrega ? `🚚 Entrega: R$ ${Number(p.taxaEntrega).toFixed(2).replace('.', ',')}<br>` : '';
+    const obs = p.observacao ? `📝 Obs: ${p.observacao}` : '';
 
-        container.appendChild(div);
-    });
+    div.innerHTML = `
+        <div style="margin-bottom:10px">
+            <b>👤 Cliente:</b> ${p.cliente}<br>
+            ${p.telefone ? `📞 Tel: ${p.telefone}<br>` : ''}
+            ${p.endereco ? `🏠 Endereço: ${p.endereco}<br>` : ''}
+            ${p.pagamento ? `💳 Pagamento: ${p.pagamento}<br>` : ''}
+        </div>
+        <div style="margin-bottom:10px">
+            🍔 <b>Itens:</b><br>${itensHtml}<br>
+            <br>${taxaEntrega}
+            💰 <b>Total:</b> ${p.total}
+            <br>${obs}
+        </div>
+        
+        <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-top: 10px;">
+            <a href="https://wa.me/55${telLimpo}?text=${msgRecebido}" target="_blank" 
+               style="background:#001483; color:white; text-decoration:none; padding:10px; border-radius:8px; font-size:11px; font-weight:bold; text-align:center;">
+               ✅ PEDIDO RECEBIDO
+            </a>
+            <a href="https://wa.me/55${telLimpo}?text=${msgEntrega}" target="_blank" 
+               style="background:#006100; color:white; text-decoration:none; padding:10px; border-radius:8px; font-size:11px; font-weight:bold; text-align:center;">
+               🛵 SAIU P/ ENTREGA
+            </a>
+        </div>
+
+        <div style="margin-top: 8px;">
+            ${p.endereco ? `<button class="tab-btn rota-btn" style="background:#4285F4; color:#fff; width:100%; padding:10px;" data-endereco="${p.endereco}">📍 Ver rota no Mapa</button>` : ''}
+        </div>
+    `;
+
+    container.appendChild(div);
+});
 
     // 2. ADICIONAR EVENTOS (Corrigido para usar a função atualizada)
     document.querySelectorAll(".rota-btn").forEach(btn => {
@@ -346,7 +367,7 @@ function mostrarRota(enderecoCliente) {
     function renderMapaMesas() {
       const grid = document.getElementById('grid-mesas');
       grid.innerHTML = "";
-      for(let i=1; i<=10; i++) {
+      for(let i=1; i<=6; i++) {
         const itens = mesasConsumo[i] || [];
         const ocupada = itens.length > 0;
         const total = itens.reduce((acc, it) => acc + (Number(it.preco) || 0), 0);
