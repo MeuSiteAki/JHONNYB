@@ -175,17 +175,42 @@
           Novo Pedido <span>BALCÃO/ZAP</span>
         </h3>
 
-        <div style="display: grid; gap: 8px; margin-bottom: 15px;">
-          <input type="text" id="balcao-nome" placeholder="Nome do Cliente" style="width:100%; padding:12px; border-radius:10px; border:1px solid #222; background:#000; color:#fff;">
-          <input type="text" id="balcao-tel" placeholder="Telefone" style="width:100%; padding:12px; border-radius:10px; border:1px solid #222; background:#000; color:#fff;">
-          <input type="text" id="balcao-end" placeholder="Endereço e Número" style="width:100%; padding:12px; border-radius:10px; border:1px solid #222; background:#000; color:#fff;">
-          <input type="text" id="balcao-bairro" placeholder="Bairro" style="width:100%; padding:12px; border-radius:10px; border:1px solid #222; background:#000; color:#fff;">
-          <select id="balcao-pag" style="width:100%; padding:12px; border-radius:10px; border:1px solid #222; background:#000; color:#fff;">
-            <option value="PIX">PIX</option>
-            <option value="Cartao">Cartão</option>
-            <option value="Dinheiro">Dinheiro</option>
-          </select>
-        </div>
+    <div style="background: #1a1a1a; padding: 15px; border-radius: 15px; border: 1px dashed var(--accent); margin-bottom: 20px;">
+  <label style="font-size: 11px; color: var(--accent); font-weight: bold; display: block; margin-bottom: 5px;">⚡ IMPORTAR DO WHATSAPP (COLE A CONVERSA ABAIXO)</label>
+  <textarea id="importarZap" placeholder="Cole aqui a conversa completa do WhatsApp..." style="width:100%; height:80px; background:#000; color:#fff; border:1px solid #333; border-radius:8px; padding:8px; font-size:12px; resize: none; font-family: sans-serif;"></textarea>
+  <button onclick="processarTextoZap()" style="width:100%; background:var(--accent); color:#000; border:none; padding:12px; border-radius:8px; font-weight:bold; margin-top:8px; cursor:pointer; font-size: 14px;">PROCESSAR PEDIDO</button>
+</div>
+
+<div style="display: grid; gap: 8px; margin-bottom: 15px;">
+  <input type="text" id="balcao-nome" placeholder="Nome do Cliente" style="width:100%; padding:12px; border-radius:10px; border:1px solid #222; background:#000; color:#fff;">
+  <input type="text" id="balcao-tel" placeholder="Telefone" style="width:100%; padding:12px; border-radius:10px; border:1px solid #222; background:#000; color:#fff;">
+  <input type="text" id="balcao-end" placeholder="Endereço e Número" style="width:100%; padding:12px; border-radius:10px; border:1px solid #222; background:#000; color:#fff;">
+  
+  <select id="balcao-bairro" onchange="atualizarTaxa()" style="width:100%; padding:12px; border-radius:10px; border:1px solid #222; background:#000; color:#fff;">
+    <option value="">Selecione o Bairro</option>
+    <option value="Centro">Centro</option>
+    <option value="Coqueiral">Coqueiral</option>
+    <option value="Vila Emanuela">Vila Emanuela</option>
+    <option value="Célio Braz">Célio Braz</option>
+    <option value="Vila Samuel">Vila Samuel</option>
+    <option value="Jardim Planalto">Jardim Planalto</option>
+    <option value="Parq. Primavera">Parq. Primavera</option>
+    <option value="São Sebastião">São Sebastião</option>
+    <option value="Paraiso">Paraiso</option>
+    <option value="São João">São João</option>
+    <option value="Vila Jamily">Vila Jamily</option>
+    <option value="Itinga-PA">Itinga-PA</option>
+    <option value="Paulistão">Paulistão</option>
+  </select>
+
+  <select id="balcao-pag" style="width:100%; padding:12px; border-radius:10px; border:1px solid #222; background:#000; color:#fff;">
+    <option value="PIX">PIX</option>
+    <option value="Cartao">Cartão</option>
+    <option value="Dinheiro">Dinheiro</option>
+  </select>
+
+  <input type="hidden" id="taxa-entrega" value="0">
+</div>
 
         <div id="itensBalcao" class="itens-lista" style="border-top: 1px solid #222; max-height: 250px;">
           <p style="text-align:center; color:var(--text-dim); margin-top:20px;">Carrinho vazio</p>
@@ -281,23 +306,28 @@
         { nome:"X-Frango Especial", preco:17 }, { nome:"X-Tudo", preco:18 }, { nome:"X-Filé", preco:25 },
         { nome:"X-Jhone Broca", preco:22 }, { nome:"X-Completação", preco:26 }, { nome:"X-Arrisca", preco:28 },{ nome:"X-Filé Acebolado", preco:28 }
       ],
-      "Bebidas": [
-        { nome:"Refri 250ml", preco:4, marcas:["Coca-Cola","Guaraná Antártica","Fanta","River"] },
-        { nome:"Refri Lata 350ml", preco:6, marcas:["Coca-Cola","Guaraná","Fanta","Sprite","Gua.Jesus"] },
-        { nome:"Refri 600ml", preco:7, marcas:["Coca-Cola","Guaraná","Fanta","River"] },
-        { nome:"Refri 1L", preco:10, marcas:["Coca-Cola","Guaraná","Fanta"] },
-        { nome:"Refri 1,5L", preco:11, marcas:["Coca-Cola","Fanta"] },
-        { nome:"Refri 2L", preco:13, marcas:["Coca-Cola","Guaraná","Fanta","River","Coca Zero"] },
-        { nome:"Suco Acerola", preco:6 }, { nome:"Suco Maracujá", preco:6 }, { nome:"Suco Cupuaçu", preco:7 },
-        { nome:"Laranja 450ml", preco:8 }, { nome:"Vitamina Cupuaçu", preco:7 }
-      ],
+     "Bebidas": [
+    { nome:"river 250", preco:4 },
+    { nome:"fanta 250", preco:4 },
+    { nome:"coca 250", preco:4 },
+    { nome:"coca lata", preco:6 },
+    { nome:"guaraná lata", preco:6 },
+    { nome:"fanta lata", preco:6 },
+    { nome:"sprite lata", preco:6 },
+    { nome:"coca 2L", preco:13 },
+    { nome:"guaraná 2L", preco:13 },
+    { nome:"fanta 2L", preco:13 },
+    { nome:"coca 600", preco:7 },
+    { nome:"coca 1L", preco:10 },
+    { nome:"coca 1.5L", preco:11 },
+    { nome:"suco de acerola", preco:6 },
+    { nome:"suco de maracujá", preco:6 },
+    { nome:"suco de cupuaçu", preco:7 },
+    { nome:"suco de laranja 450ml", preco:8 },
+    { nome:"vitamina cupuaçu", preco:7 }
+],
       "Porções": [ { nome:"Batata Frita", preco:17 } ],
-      "Adicionais": [
-        { nome:"Bacon", preco:3 }, { nome:"Calabresa", preco:2 }, { nome:"Cheddar", preco:2 },
-        { nome:"Carne", preco:5 }, { nome:"Frango", preco:5 }, { nome:"Filé", preco:7 },
-        { nome:"Presunto", preco:2 }, { nome:"Queijo", preco:2 }, { nome:"Ovo", preco:2 },
-        { nome:"Salsicha", preco:1 }, { nome:"Banana", preco:3 }, { nome:"Catupiry", preco:2 }, { nome:"Maionese Temperada", preco:1 }
-      ]
+ 
     };
 
     const listaAdicionais = {
@@ -343,48 +373,37 @@ window.renderCardapioBalcao = () => {
 };
 
 // 3. Função para processar escolhas (Adicionais/Marcas) no Balcão
-window.processarItemBalcao = async (item) => {
-    let nomeFinal = item.nome, precoFinal = item.preco;
-    
-    if(item.marcas) {
-        const { value: marca } = await Swal.fire({
-            title: 'Marca', input: 'select',
-            inputOptions: item.marcas.reduce((o, m) => { o[m] = m; return o; }, {})
-        });
-        if(!marca) return;
-        nomeFinal += ` (${marca})`;
-    }
-    
-    // Verifica se é lanche ou porção para oferecer adicionais
-    const categoria = Object.keys(cardapio).find(key => cardapio[key].some(i => i.nome === item.nome));
-    if (["Lanches", "Porções"].includes(categoria)) {
-        const { value: add } = await Swal.fire({
-            title: 'Adicional?', input: 'select',
-            inputOptions: { "nenhum": "Sem Adicionais", ...Object.keys(listaAdicionais).reduce((o, k) => { o[k] = `${k} (+R$${listaAdicionais[k]})`; return o; }, {}) }
-        });
-        if (add && add !== "nenhum") { nomeFinal += ` + ${add}`; precoFinal += listaAdicionais[add]; }
-    }
-    
-    const { value: obs } = await Swal.fire({ title: 'Alguma Observação?', input: 'text' });
-    
-    carrinhoBalcaoItems.push({ nome: nomeFinal, preco: precoFinal, obs: obs || "" });
-    atualizarListagemBalcao();
+// --- 1. GERENCIADOR DE TAXA E CARRINHO ---
+window.atualizarTaxa = () => {
+    const bairroSelect = document.getElementById('balcao-bairro');
+    const taxaInput = document.getElementById('taxa-entrega');
+    if (!bairroSelect || !taxaInput) return;
+
+    const bairro = bairroSelect.value;
+    // Paulistão e Itinga R$ 4,00 | Outros R$ 2,00
+    const valorTaxa = (bairro === "Paulistão" || bairro === "Itinga-PA") ? 4.00 : (bairro ? 2.00 : 0);
+
+    taxaInput.value = valorTaxa;
+    window.atualizarListagemBalcao(); 
 };
 
-// 4. Atualiza o resumo visual do carrinho
 window.atualizarListagemBalcao = () => {
     const lista = document.getElementById('itensBalcao');
     const totalEl = document.getElementById('totalBalcao');
+    const taxaInput = document.getElementById('taxa-entrega');
+    if (!lista || !totalEl) return;
+
+    const valorTaxa = parseFloat(taxaInput?.value) || 0;
     
-    if(carrinhoBalcaoItems.length === 0) {
+    if(carrinhoBalcaoItems.length === 0 && valorTaxa === 0) {
         lista.innerHTML = `<p style="text-align:center; color:var(--text-dim); margin-top:20px;">Carrinho vazio</p>`;
         totalEl.innerText = "R$ 0,00";
         return;
     }
 
-    let total = 0;
-    lista.innerHTML = carrinhoBalcaoItems.map((it, idx) => {
-        total += it.preco;
+    let subtotalItens = 0;
+    let html = carrinhoBalcaoItems.map((it, idx) => {
+        subtotalItens += it.preco;
         return `
         <div class="item-row">
           <div>
@@ -397,33 +416,151 @@ window.atualizarListagemBalcao = () => {
           </div>
         </div>`;
     }).join('');
-    totalEl.innerText = `R$ ${total.toFixed(2)}`;
+
+    if (valorTaxa > 0) {
+        html += `
+        <div class="item-row" style="border-top: 1px dashed #444; margin-top: 10px; padding-top: 10px; color: var(--accent)">
+          <span>🛵 Taxa de Entrega (${document.getElementById('balcao-bairro').value})</span>
+          <b>R$ ${valorTaxa.toFixed(2)}</b>
+        </div>`;
+    }
+
+    lista.innerHTML = html;
+    totalEl.innerText = `R$ ${(subtotalItens + valorTaxa).toFixed(2)}`;
 };
 
 window.removerItemBalcao = (idx) => {
     carrinhoBalcaoItems.splice(idx, 1);
-    atualizarListagemBalcao();
+    if (carrinhoBalcaoItems.length === 0) {
+        document.getElementById('balcao-bairro').value = "";
+        document.getElementById('taxa-entrega').value = "0";
+    }
+    window.atualizarListagemBalcao();
 };
 
-// 5. Finaliza e envia para o Firebase
+// --- 2. PROCESSAMENTO MANUAL E ADICIONAIS ---
+window.processarItemBalcao = async (item) => {
+    let nomeFinal = item.nome, precoFinal = item.preco;
+    
+    if(item.marcas) {
+        const { value: marca } = await Swal.fire({
+            title: 'Marca', input: 'select',
+            inputOptions: item.marcas.reduce((o, m) => { o[m] = m; return o; }, {})
+        });
+        if(!marca) return;
+        nomeFinal += ` (${marca})`;
+    }
+    
+    const categoria = Object.keys(cardapio).find(key => cardapio[key].some(i => i.nome === item.nome));
+    if (["Lanches", "Porções"].includes(categoria)) {
+        const { value: add } = await Swal.fire({
+            title: 'Adicional?', input: 'select',
+            inputOptions: { "nenhum": "Sem Adicionais", ...Object.keys(listaAdicionais).reduce((o, k) => { o[k] = `${k} (+R$${listaAdicionais[k]})`; return o; }, {}) }
+        });
+        if (add && add !== "nenhum") { nomeFinal += ` + ${add}`; precoFinal += listaAdicionais[add]; }
+    }
+    
+    const { value: obs } = await Swal.fire({ title: 'Alguma Observação?', input: 'text' });
+    
+    carrinhoBalcaoItems.push({ nome: nomeFinal, preco: precoFinal, obs: obs || "" });
+    window.atualizarListagemBalcao();
+};
+
+// --- 3. IMPORTADOR INTELIGENTE DO WHATSAPP ---
+window.processarTextoZap = () => {
+    const campo = document.getElementById('importarZap');
+    const textoOriginal = campo.value;
+    if (!textoOriginal.trim()) return Swal.fire('Ops', 'Cole o texto do WhatsApp!', 'info');
+
+    const linhas = textoOriginal.split('\n').map(l => l.trim()).filter(l => l.length > 0);
+    const bairrosOficiais = ["Centro", "Coqueiral", "Vila Emanuela", "Célio Braz", "Vila Samuel", "Jardim Planalto", "Parq. Primavera", "São Sebastião", "Paraiso", "São João", "Vila Jamily", "Itinga-PA", "Paulistão"];
+    
+    // Nome do teu estabelecimento para não duplicar o que tu escreves
+    const meuNomeZap = "JHONNY BAGDA"; 
+
+    linhas.forEach((linha) => {
+        // 1. Ignora as tuas mensagens
+        if (linha.toUpperCase().includes(meuNomeZap)) return;
+
+        let conteudoLimpo = linha;
+        if (linha.includes(']')) {
+            const partes = linha.split(':');
+            if (partes.length >= 3) conteudoLimpo = partes.slice(2).join(':').trim();
+        }
+        
+        // Remove espaços e hífens para comparar "XBACON" com "X-BACON"
+        const textoBusca = conteudoLimpo.toUpperCase().replace(/[\s-]/g, '');
+
+        // 2. VARREDURA TOTAL (Lanches, Bebidas e Porções)
+        for (let cat in cardapio) {
+            cardapio[cat].forEach(prod => {
+                const nomeLimpoProd = prod.nome.toUpperCase().replace(/[\s-]/g, '');
+                
+                // Se o nome do item estiver na mensagem (ex: XBACON ou COCALATA)
+                if (textoBusca.includes(nomeLimpoProd)) {
+                    const jaTem = carrinhoBalcaoItems.some(i => i.nome === prod.nome && i.linhaRef === linha);
+                    if (!jaTem) {
+                        carrinhoBalcaoItems.push({ 
+                            nome: prod.nome, 
+                            preco: prod.preco, 
+                            obs: "Zap", 
+                            linhaRef: linha 
+                        });
+                    }
+                }
+            });
+        }
+
+        // 3. DADOS DE ENTREGA E CLIENTE
+        const conteudoUP = conteudoLimpo.toUpperCase();
+        
+        if (conteudoUP.includes("RUA") || conteudoUP.includes("AV.") || conteudoUP.includes("Nº") || conteudoUP.includes("CASA")) {
+            document.getElementById('balcao-end').value = conteudoLimpo;
+        }
+
+        bairrosOficiais.forEach(b => {
+            if (conteudoUP.includes(b.toUpperCase())) {
+                document.getElementById('balcao-bairro').value = b;
+                if(window.atualizarTaxa) window.atualizarTaxa(); 
+            }
+        });
+        
+        if (conteudoUP.includes("PIX")) document.getElementById('balcao-pag').value = "PIX";
+        else if (conteudoUP.includes("CARTAO") || conteudoUP.includes("CARTÃO")) document.getElementById('balcao-pag').value = "Cartao";
+        else if (conteudoUP.includes("DINHEIRO")) document.getElementById('balcao-pag').value = "Dinheiro";
+        
+        if (!document.getElementById('balcao-nome').value && linha.includes(']')) {
+            const m = linha.match(/\]\s*([^:]+):/);
+            if (m && !m[1].includes(meuNomeZap)) document.getElementById('balcao-nome').value = m[1].trim();
+        }
+    });
+
+    window.atualizarListagemBalcao();
+    campo.value = "";
+    Swal.fire({ title: 'Pedido Importado!', icon: 'success', timer: 1000, showConfirmButton: false });
+};
+
+// --- 4. FINALIZAÇÃO E FIREBASE ---
 window.salvarPedidoBalcao = async () => {
     const nome = document.getElementById('balcao-nome').value;
     const end = document.getElementById('balcao-end').value;
     const bairro = document.getElementById('balcao-bairro').value;
     const tel = document.getElementById('balcao-tel').value;
     const pag = document.getElementById('balcao-pag').value;
+    const taxa = parseFloat(document.getElementById('taxa-entrega').value) || 0;
 
     if (!nome || carrinhoBalcaoItems.length === 0) {
         return Swal.fire('Atenção', 'Preencha o nome do cliente e adicione produtos!', 'warning');
     }
 
-    const totalVal = carrinhoBalcaoItems.reduce((acc, it) => acc + it.preco, 0);
+    const subtotal = carrinhoBalcaoItems.reduce((acc, it) => acc + it.preco, 0);
+    const totalGeral = subtotal + taxa;
 
     await addDoc(collection(db, "pedidos"), {
         cliente: nome.toUpperCase() + " (MANUAL)",
-        endereco: end ? `${end}, ${bairro}` : "Retirada/Balcão",
+        endereco: end ? `${end}, ${bairro}` : (bairro ? `ENTREGA: ${bairro}` : "Retirada/Balcão"),
         telefone: tel || "",
-        total: "R$ " + totalVal.toFixed(2).replace('.', ','),
+        total: "R$ " + totalGeral.toFixed(2).replace('.', ','),
         pagamento: pag,
         timestamp: serverTimestamp(),
         itens: carrinhoBalcaoItems.map(i => ({ name: i.nome + (i.obs ? ` (Obs: ${i.obs})` : ''), quantity: 1 }))
@@ -435,90 +572,77 @@ window.salvarPedidoBalcao = async () => {
     document.getElementById('balcao-end').value = "";
     document.getElementById('balcao-bairro').value = "";
     document.getElementById('balcao-tel').value = "";
-    atualizarListagemBalcao();
+    document.getElementById('taxa-entrega').value = "0";
+    window.atualizarListagemBalcao();
     
     Swal.fire('Sucesso!', 'Pedido lançado no Delivery!', 'success');
 };
 
-// 6. Chamar a renderização quando clicar na aba
-const btnBalcao = document.getElementById('btn-balcao');
-if(btnBalcao) {
-    btnBalcao.addEventListener('click', () => {
-        renderCardapioBalcao();
-    });
-}
-    window.switchTab = async (tab) => {
-      if (tab === 'balanco' && !(await validarAcesso())) return;
-      document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
-      document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
-      document.getElementById(tab + '-section').classList.add('active');
-      document.getElementById('btn-' + tab).classList.add('active');
-    };
+// --- 5. NAVEGAÇÃO E MESAS ---
+window.switchTab = async (tab) => {
+    if (tab === 'balanco' && !(await validarAcesso())) return;
+    document.querySelectorAll('.content-section').forEach(el => el.classList.remove('active'));
+    document.querySelectorAll('.tab-btn').forEach(el => el.classList.remove('active'));
+    document.getElementById(tab + '-section').classList.add('active');
+    document.getElementById('btn-' + tab).classList.add('active');
+};
 
-    window.apagarTodosPedidos = async () => {
-      if (!(await validarAcesso())) return;
-      const result = await Swal.fire({
-        title: 'Zerar tudo?',
-        icon: 'warning',
-        showCancelButton: true,
-        confirmButtonText: 'Sim, Apagar!'
-      });
-      if (result.isConfirmed) {
-        const s = await getDocs(collection(db, "pedidos"));
-        s.forEach(d => deleteDoc(doc(db, "pedidos", d.id)));
-        Swal.fire('Limpo!', '', 'success');
-      }
-    };
-
-    window.abrirMesa = async (num) => {
-      const dados = mesasConsumo[num] || { itens: [] };
-      if (dados.itens.length === 0) {
+window.abrirMesa = async (num) => {
+    const dados = mesasConsumo[num] || { itens: [] };
+    if (dados.itens.length === 0) {
         const { value: atendente } = await Swal.fire({
-          title: 'Quem está atendendo?',
-          input: 'select',
-          inputOptions: atendentes.reduce((o, a) => { o[a] = a; return o; }, {}),
-          showCancelButton: true
+            title: 'Quem está atendendo?',
+            input: 'select',
+            inputOptions: atendentes.reduce((o, a) => { o[a] = a; return o; }, {}),
+            showCancelButton: true
         });
         if (!atendente) return;
         await setDoc(doc(db, "mapa_mesas", num.toString()), { atendente, itens: [] });
-      }
-      mesaAtiva = num;
-      document.getElementById('labelMesaAtiva').innerText = `#${num.toString().padStart(2, '0')}`;
-      document.getElementById('modalMesa').style.display = 'block';
-      renderAccordion();
-      atualizarConsumo();
-    };
+    }
+    mesaAtiva = num;
+    document.getElementById('labelMesaAtiva').innerText = `#${num.toString().padStart(2, '0')}`;
+    document.getElementById('modalMesa').style.display = 'block';
+    renderAccordion();
+    atualizarConsumo();
+};
 
-    onSnapshot(collection(db, "mapa_mesas"), (snap) => {
-      mesasConsumo = {};
-      snap.forEach(d => { mesasConsumo[d.id] = d.data(); });
-      renderMapaMesas();
-      if(mesaAtiva) atualizarConsumo();
-    });
-
-    function renderMapaMesas() {
-  const grid = document.getElementById('grid-mesas');
-  grid.innerHTML = "";
-  // Se quiser aumentar o número de mesas, basta mudar o 6 aqui
-  for(let i=1; i<=6; i++) { 
-    const dados = mesasConsumo[i] || { itens: [] };
-    const itens = dados.itens || [];
-    const ocupada = itens.length > 0;
-    const total = itens.reduce((acc, it) => acc + (Number(it.preco) || 0), 0);
-    
-    const div = document.createElement('div');
-    div.className = `mesa-card ${ocupada ? 'ocupada' : 'disponivel'}`;
-    div.onclick = () => abrirMesa(i);
-    
-    div.innerHTML = `
-      <h3>${i.toString().padStart(2, '0')}</h3>
-      <p>${ocupada ? 'R$ ' + total.toFixed(2) : 'LIVRE'}</p>
-      ${ocupada ? '<div style="width:6px; height:6px; background:#ff4d4d; border-radius:50%; margin-top:8px; box-shadow:0 0 8px #ff4d4d"></div>' : ''}
-    `;
-    grid.appendChild(div);
-  }
+function renderMapaMesas() {
+    const grid = document.getElementById('grid-mesas');
+    if(!grid) return;
+    grid.innerHTML = "";
+    for(let i=1; i<=6; i++) { 
+        const dados = mesasConsumo[i] || { itens: [] };
+        const itens = dados.itens || [];
+        const ocupada = itens.length > 0;
+        const total = itens.reduce((acc, it) => acc + (Number(it.preco) || 0), 0);
+        
+        const div = document.createElement('div');
+        div.className = `mesa-card ${ocupada ? 'ocupada' : 'disponivel'}`;
+        div.onclick = () => abrirMesa(i);
+        div.innerHTML = `
+            <h3>${i.toString().padStart(2, '0')}</h3>
+            <p>${ocupada ? 'R$ ' + total.toFixed(2) : 'LIVRE'}</p>
+            ${ocupada ? '<div style="width:6px; height:6px; background:#ff4d4d; border-radius:50%; margin-top:8px; box-shadow:0 0 8px #ff4d4d"></div>' : ''}
+        `;
+        grid.appendChild(div);
+    }
 }
 
+// Ouvinte do Firebase para Mesas
+onSnapshot(collection(db, "mapa_mesas"), (snap) => {
+    mesasConsumo = {};
+    snap.forEach(d => { mesasConsumo[d.id] = d.data(); });
+    renderMapaMesas();
+    if(typeof mesaAtiva !== 'undefined' && mesaAtiva) atualizarConsumo();
+});
+
+// Eventos de Aba
+const btnBalcao = document.getElementById('btn-balcao');
+if(btnBalcao) {
+    btnBalcao.addEventListener('click', () => {
+        if(typeof renderCardapioBalcao === "function") renderCardapioBalcao();
+    });
+}
     function atualizarConsumo() {
       const dados = mesasConsumo[mesaAtiva] || { itens: [], atendente: '---' };
       const itens = dados.itens || [];
@@ -694,7 +818,50 @@ if(btnBalcao) {
     };
 
     const tocarBip = () => { if (audioPermitido && bip) { bip.currentTime = 0; bip.play().catch(e => {}); } };
+window.apagarTodosPedidos = async () => {
+    // 1. Verifica a senha antes de qualquer coisa
+    const acessoenvolvido = await validarAcesso();
+    if (!acessoenvolvido) return;
 
+    // 2. Confirmação visual para não apagar por erro
+    const result = await Swal.fire({
+        title: 'Zerar todo o sistema?',
+        text: "Isso apagará todos os pedidos do banco de dados!",
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#ff4d4d',
+        cancelButtonColor: '#666',
+        confirmButtonText: 'Sim, Apagar Tudo!',
+        cancelButtonText: 'Cancelar'
+    });
+
+    if (result.isConfirmed) {
+        try {
+            // Exibe um carregando (melhora a experiência)
+            Swal.fire({ title: 'Limpando...', allowOutsideClick: false, didOpen: () => { Swal.showLoading(); } });
+
+            // 3. Pega todos os documentos da coleção "pedidos"
+            const querySnapshot = await getDocs(collection(db, "pedidos"));
+            
+            // 4. Deleta um por um
+            const promessasDeDelete = querySnapshot.docs.map(documento => 
+                deleteDoc(doc(db, "pedidos", documento.id))
+            );
+            
+            await Promise.all(promessasDeDelete);
+
+            // 5. Sucesso
+            Swal.fire('Sistema Limpo!', 'Todos os pedidos foram removidos.', 'success');
+            
+            // Opcional: recarrega a página ou a lista
+            if (window.atualizarListagemBalcao) window.atualizarListagemBalcao();
+            
+        } catch (erro) {
+            console.error("Erro ao apagar pedidos:", erro);
+            Swal.fire('Erro!', 'Não foi possível apagar os dados.', 'error');
+        }
+    }
+};
   </script>
 </body>
 </html>
