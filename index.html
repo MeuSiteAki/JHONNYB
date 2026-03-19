@@ -177,8 +177,11 @@
 
     <div style="background: #1a1a1a; padding: 15px; border-radius: 15px; border: 1px dashed var(--accent); margin-bottom: 20px;">
   <label style="font-size: 11px; color: var(--accent); font-weight: bold; display: block; margin-bottom: 5px;">⚡ IMPORTAR DO WHATSAPP (COLE A CONVERSA ABAIXO)</label>
-  <textarea id="importarZap" placeholder="Cole aqui a conversa completa do WhatsApp..." style="width:100%; height:80px; background:#000; color:#fff; border:1px solid #333; border-radius:8px; padding:8px; font-size:12px; resize: none; font-family: sans-serif;"></textarea>
-  <button onclick="processarTextoZap()" style="width:100%; background:var(--accent); color:#000; border:none; padding:12px; border-radius:8px; font-weight:bold; margin-top:8px; cursor:pointer; font-size: 14px;">PROCESSAR PEDIDO</button>
+  <textarea id="importarZap" placeholder="Cole aqui a conversa completa do WhatsApp..." style="width:100%; height:35px; background:#000; color:#fff; border:1px solid #333; border-radius:8px; padding:8px; font-size:12px; resize: none; font-family: sans-serif;"></textarea>
+  <button onclick="colarEProcessar()" style="background:var(--accent); color:#000; font-weight:bold; padding:10px; border-radius:8px; margin-bottom:10px; width:100%">
+    📋 Colar do WhatsApp e Lançar
+</button>
+  <!-- <button onclick="processarTextoZap()" style="width:100%; background:var(--accent); color:#000; border:none; padding:12px; border-radius:8px; font-weight:bold; margin-top:8px; cursor:pointer; font-size: 14px;">PROCESSAR PEDIDO</button> -->
 </div>
 
 <div style="display: grid; gap: 8px; margin-bottom: 15px;">
@@ -469,77 +472,143 @@ window.processarItemBalcao = async (item) => {
 // --- 3. IMPORTADOR INTELIGENTE DO WHATSAPP ---
 window.processarTextoZap = () => {
     const campo = document.getElementById('importarZap');
+    const campoNome = document.getElementById('balcao-nome');
+    const campoTel = document.getElementById('balcao-tel');
     const textoOriginal = campo.value;
-    if (!textoOriginal.trim()) return Swal.fire('Ops', 'Cole o texto do WhatsApp!', 'info');
+    
+    if (!textoOriginal.trim()) return;
+
+    // 1. CAPTURA DE TELEFONE
+    const matchTel = textoOriginal.match(/(?:\+?55\s?)?\(?\d{2}\)?\s?\d{4,5}-?\d{4}/);
+    if (matchTel && campoTel) campoTel.value = matchTel[0].replace(/\D/g, '');
 
     const linhas = textoOriginal.split('\n').map(l => l.trim()).filter(l => l.length > 0);
     const bairrosOficiais = ["Centro", "Coqueiral", "Vila Emanuela", "Célio Braz", "Vila Samuel", "Jardim Planalto", "Parq. Primavera", "São Sebastião", "Paraiso", "São João", "Vila Jamily", "Itinga-PA", "Paulistão"];
-    
-    // Nome do teu estabelecimento para não duplicar o que tu escreves
     const meuNomeZap = "JHONNY BAGDA"; 
+    const ignorarNoNome = ["BOA NOITE", "BOA TARDE", "BOM DIA", "OI", "OLÁ", "OLA", "QUAL", "ENDEREÇO", "FORMA", "PAGAMENTO", "OK", "PIX", "CARTAO", "DINHEIRO", "QUANDO", "ESTIVER", "SAINDO"];
 
+    // 2. LÓGICA DE NOME
+    let nomeEncontrado = "";
+    for (let i = 0; i < linhas.length; i++) {
+        let linha = linhas[i];
+        let linhaUP = linha.toUpperCase();
+        if (linha.includes(']') && linha.includes(':')) {
+            let match = linha.match(/\]\s*([^:]+):/);
+            if (match && match[1]) {
+                let n = match[1].trim();
+                if (!n.toUpperCase().includes(meuNomeZap)) { nomeEncontrado = n; break; }
+            }
+        } else if (linha.length > 2 && linha.length < 25 && !linha.includes(':') && !linha.includes('/') && !/\d/.test(linha)) {
+            const ehSaudacao = ignorarNoNome.some(palavra => linhaUP.includes(palavra));
+            if (!ehSaudacao && !linhaUP.includes(meuNomeZap)) { nomeEncontrado = linha; }
+        }
+    }
+    if (nomeEncontrado) campoNome.value = nomeEncontrado;
+
+    // 3. PROCESSAMENTO DE ITENS
     linhas.forEach((linha) => {
-        // 1. Ignora as tuas mensagens
         if (linha.toUpperCase().includes(meuNomeZap)) return;
 
         let conteudoLimpo = linha;
         if (linha.includes(']')) {
             const partes = linha.split(':');
             if (partes.length >= 3) conteudoLimpo = partes.slice(2).join(':').trim();
+        } else if (linha.includes(':')) {
+            const partes = linha.split(':');
+            conteudoLimpo = partes.slice(1).join(':').trim();
         }
         
-        // Remove espaços e hífens para comparar "XBACON" com "X-BACON"
-        const textoBusca = conteudoLimpo.toUpperCase().replace(/[\s-]/g, '');
+        const textoParaComparar = conteudoLimpo.toUpperCase()
+            .normalize("NFD").replace(/[\u0300-\u036f]/g, "")
+            .replace(/[,\.]/g, '');
 
-        // 2. VARREDURA TOTAL (Lanches, Bebidas e Porções)
         for (let cat in cardapio) {
             cardapio[cat].forEach(prod => {
-                const nomeLimpoProd = prod.nome.toUpperCase().replace(/[\s-]/g, '');
-                
-                // Se o nome do item estiver na mensagem (ex: XBACON ou COCALATA)
-                if (textoBusca.includes(nomeLimpoProd)) {
+                const nomeProdNorm = prod.nome.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                const palavrasChave = nomeProdNorm.replace(/-/g, ' ').split(' ').filter(p => p.length > 1);
+
+                const encontrouTodas = palavrasChave.every(palavra => textoParaComparar.includes(palavra));
+                const ehLancheX = prod.nome.toUpperCase().startsWith('X-');
+                const encontrouX = ehLancheX && textoParaComparar.includes(nomeProdNorm.replace('-', ''));
+
+                if (encontrouTodas || encontrouX) {
+                    const regexQtd = new RegExp(`(\\d+)\\s*[X\\s]*`, 'i');
+                    const matchQtd = conteudoLimpo.match(regexQtd);
+                    let qtd = matchQtd ? parseInt(matchQtd[1]) : 1;
+
+                    let obsFinal = ""; 
+                    const idxProd = textoParaComparar.indexOf(palavrasChave[0]);
+                    
+                    if (idxProd !== -1) {
+                        let resto = conteudoLimpo.substring(idxProd + prod.nome.length).trim();
+                        
+                        // --- VERIFICAÇÃO DE "ITEM DISFARÇADO DE OBS" ---
+                        let restoUP = resto.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                        let restoEhOutroItem = false;
+
+                        // Varre o cardápio todo para ver se o resto da frase contém outro produto
+                        for (let c in cardapio) {
+                            cardapio[c].forEach(p => {
+                                const pNome = p.nome.toUpperCase().normalize("NFD").replace(/[\u0300-\u036f]/g, "");
+                                if (restoUP.includes(pNome) && pNome.length > 3) {
+                                    restoEhOutroItem = true;
+                                }
+                            });
+                        }
+
+                        // Só salva a Obs se não for outro item e tiver algo escrito
+                        if (!restoEhOutroItem && resto.length > 2) {
+                            // Limpa conectores do início da obs
+                            obsFinal = resto.replace(/^( e | e uma | uma | e um | um | com | de | em )/i, '').replace(/^[:\-\s]+/, '').trim();
+                            // Filtro final contra palavras lixo
+                            if (["ZAP", "ATA", "LATAS", "LATA"].includes(obsFinal.toUpperCase())) obsFinal = "";
+                        }
+                    }
+
                     const jaTem = carrinhoBalcaoItems.some(i => i.nome === prod.nome && i.linhaRef === linha);
                     if (!jaTem) {
-                        carrinhoBalcaoItems.push({ 
-                            nome: prod.nome, 
-                            preco: prod.preco, 
-                            obs: "Zap", 
-                            linhaRef: linha 
-                        });
+                        for(let i = 0; i < qtd; i++) {
+                            carrinhoBalcaoItems.push({ nome: prod.nome, preco: prod.preco, obs: obsFinal, linhaRef: linha });
+                        }
                     }
                 }
             });
         }
 
-        // 3. DADOS DE ENTREGA E CLIENTE
+        // 4. ENDEREÇO E PAGAMENTO
         const conteudoUP = conteudoLimpo.toUpperCase();
-        
-        if (conteudoUP.includes("RUA") || conteudoUP.includes("AV.") || conteudoUP.includes("Nº") || conteudoUP.includes("CASA")) {
+        if (["RUA", "AV.", "Nº", "CASA", "QUADRA", "LOTE", "BURITI"].some(p => conteudoUP.includes(p))) {
             document.getElementById('balcao-end').value = conteudoLimpo;
         }
-
         bairrosOficiais.forEach(b => {
             if (conteudoUP.includes(b.toUpperCase())) {
                 document.getElementById('balcao-bairro').value = b;
-                if(window.atualizarTaxa) window.atualizarTaxa(); 
+                window.atualizarTaxa(); 
             }
         });
-        
         if (conteudoUP.includes("PIX")) document.getElementById('balcao-pag').value = "PIX";
         else if (conteudoUP.includes("CARTAO") || conteudoUP.includes("CARTÃO")) document.getElementById('balcao-pag').value = "Cartao";
         else if (conteudoUP.includes("DINHEIRO")) document.getElementById('balcao-pag').value = "Dinheiro";
-        
-        if (!document.getElementById('balcao-nome').value && linha.includes(']')) {
-            const m = linha.match(/\]\s*([^:]+):/);
-            if (m && !m[1].includes(meuNomeZap)) document.getElementById('balcao-nome').value = m[1].trim();
-        }
     });
 
     window.atualizarListagemBalcao();
     campo.value = "";
-    Swal.fire({ title: 'Pedido Importado!', icon: 'success', timer: 1000, showConfirmButton: false });
+    Swal.fire({ title: 'Pedido Importado!', icon: 'success', timer: 800, showConfirmButton: false });
 };
 
+// copia e cola
+window.colarEProcessar = async () => {
+    try {
+        // Tenta ler o que você acabou de copiar no WhatsApp
+        const texto = await navigator.clipboard.readText();
+        if(!texto) return Swal.fire('Área de transferência vazia', 'Copie o texto no WhatsApp primeiro.', 'warning');
+        
+        document.getElementById('importarZap').value = texto;
+        window.processarTextoZap(); // Já chama a função de processar automaticamente
+    } catch (err) {
+        Swal.fire('Atenção', 'Clique no campo de texto e cole manualmente (o navegador bloqueou o acesso automático).', 'info');
+    }
+};
 // --- 4. FINALIZAÇÃO E FIREBASE ---
 window.salvarPedidoBalcao = async () => {
     const nome = document.getElementById('balcao-nome').value;
@@ -557,7 +626,7 @@ window.salvarPedidoBalcao = async () => {
     const totalGeral = subtotal + taxa;
 
     await addDoc(collection(db, "pedidos"), {
-        cliente: nome.toUpperCase() + " (MANUAL)",
+        cliente: nome.toUpperCase(),
         endereco: end ? `${end}, ${bairro}` : (bairro ? `ENTREGA: ${bairro}` : "Retirada/Balcão"),
         telefone: tel || "",
         total: "R$ " + totalGeral.toFixed(2).replace('.', ','),
@@ -751,24 +820,29 @@ if(btnBalcao) {
         div.className = `pedido ${p.cliente.includes("MESA") ? 'origem-mesa' : ''}`;
         div.innerHTML = `
           <div style="display:flex; justify-content:space-between; margin-bottom:10px">
-            <span style="color:var(--accent); font-weight:700">🕒 ${hora}</span>
-            <span style="font-size:11px; opacity:0.5">#${d.id.slice(0,5)}</span>
-          </div>
-          <div style="margin-bottom:10px">
-            <b style="font-size:16px">${p.cliente}</b><br>
-            <small style="opacity:0.7">${p.endereco || 'Consumo Local'}</small>
-          </div>
-          <div style="background:#000; padding:10px; border-radius:10px; font-size:13px; margin-bottom:12px">
-            ${(p.itens || []).map(it => `• ${it.quantity}x ${it.name}`).join('<br>')}
-            <div style="margin-top:8px; border-top:1px solid #222; padding-top:5px; color:var(--accent); font-weight:700">
-              Total: ${p.total} | ${p.pagamento || 'PIX'}
-            </div>
-          </div>
-          <div style="display: grid; grid-template-columns: 1fr 1fr 40px; gap: 8px;">
-            <a href="https://wa.me/55${p.telefone?.replace(/\D/g,'')}?text=Recebemos seu pedido!" target="_blank" style="background:#003366; color:#fff; text-decoration:none; padding:10px; border-radius:8px; font-size:11px; text-align:center; font-weight:700">OK</a>
-            <a href="https://wa.me/55${p.telefone?.replace(/\D/g,'')}?text=Seu pedido saiu para entrega!" target="_blank" style="background:#006100; color:#fff; text-decoration:none; padding:10px; border-radius:8px; font-size:11px; text-align:center; font-weight:700">ENTREGA</a>
-            <button onclick="deletarDoc('${d.id}')" class="btn-del-item" style="width:100%">✕</button>
-          </div>`;
+    <span style="color:var(--accent); font-weight:700">🕒 ${hora}</span>
+    <span style="font-size:11px; opacity:0.5">#${d.id.slice(0,5)}</span>
+  </div>
+  <div style="margin-bottom:10px">
+    <b style="font-size:16px">${p.cliente}</b><br>
+    <small style="opacity:0.7">${p.endereco || 'Consumo Local'}</small>
+  </div>
+  <div style="background:#000; padding:10px; border-radius:10px; font-size:13px; margin-bottom:12px">
+  
+${(p.itens || []).map(it => `
+    • ${it.quantity}x ${it.name} 
+    ${it.obs ? `<br><i style="color:gray; font-size:11px; margin-left:15px">↳ Obs: ${it.obs}</i>` : ''}
+`).join('<br>')}
+    <div style="margin-top:8px; border-top:1px solid #222; padding-top:5px; color:var(--accent); font-weight:700">
+      Total: ${p.total} | ${p.pagamento || 'PIX'}
+    </div>
+  </div>
+  <div style="display: grid; grid-template-columns: 1fr 1fr 1fr 40px; gap: 8px;">
+    <button onclick='copiarTextoPedido(${JSON.stringify(p)})' style="background:#444; color:#fff; border:none; padding:10px; border-radius:8px; font-size:10px; font-weight:700; cursor:pointer">📋 COPIAR</button>
+    <a href="https://wa.me/55${p.telefone?.replace(/\D/g,'')}?text=Recebemos seu pedido!" target="_blank" style="background:#003366; color:#fff; text-decoration:none; padding:10px; border-radius:8px; font-size:11px; text-align:center; font-weight:700">OK</a>
+    <a href="https://wa.me/55${p.telefone?.replace(/\D/g,'')}?text=Seu pedido saiu para entrega!" target="_blank" style="background:#006100; color:#fff; text-decoration:none; padding:10px; border-radius:8px; font-size:11px; text-align:center; font-weight:700">ENTREGA</a>
+    <button onclick="deletarDoc('${d.id}')" class="btn-del-item" style="width:100%">✕</button>
+  </div>`;
         container.appendChild(div);
       });
       document.getElementById('balancoValores').innerHTML = `
@@ -780,7 +854,35 @@ if(btnBalcao) {
     window.fecharModal = () => { mesaAtiva = null; document.getElementById('modalMesa').style.display = 'none'; };
     window.toggleAdminMenu = () => { const m = document.getElementById('adminMenu'); m.style.display = m.style.display === 'flex' ? 'none' : 'flex'; };
     window.renderAccordion = renderAccordion;
-    
+
+    window.copiarTextoPedido = (p) => {
+    const listaItens = (p.itens || []).map(it => {
+        let texto = `• ${it.quantity}x ${it.name}`;
+        if (it.obs && it.obs !== "Zap") texto += ` _(Obs: ${it.obs})_`;
+        return texto;
+    }).join('\n');
+
+    const msg = `*JHONNY BAGDÁ - RESUMO* 🍔\n\n` +
+                `👤 *Cliente:* ${p.cliente}\n` +
+                `📍 *Entrega:* ${p.endereco || 'Consumo Local'}\n` +
+                `----------------------------------\n` +
+                `${listaItens}\n` +
+                `----------------------------------\n` +
+                `💰 *Total: ${p.total} | ${p.pagamento || 'PIX'}*\n\n` +
+                `*Seu pedido foi confirmado!* 🔥`;
+
+    navigator.clipboard.writeText(msg).then(() => {
+        Swal.fire({
+            title: 'Copiado!',
+            text: 'Resumo formatado para enviar ao cliente.',
+            icon: 'success',
+            timer: 1000,
+            showConfirmButton: false
+        });
+    });
+};
+
+    // menu
     function renderAccordion() {
       const container = document.getElementById('cardapioRender');
       container.innerHTML = "";
